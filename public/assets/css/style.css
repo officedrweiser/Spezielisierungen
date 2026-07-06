@@ -158,6 +158,7 @@ h3 { font-size: 1.3rem; }
 
 .main-nav { display: flex; align-items: center; gap: 36px; }
 .main-nav ul { display: flex; gap: 32px; }
+.main-nav > .btn { padding-left: 34px; padding-right: 34px; }
 .main-nav a {
   font-weight: 600;
   font-size: 0.95rem;
