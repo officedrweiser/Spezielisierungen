@@ -82,12 +82,19 @@
   var CONSENT_KEY = 'mw_cookie_consent';
   var banner = document.getElementById('cookie-banner');
 
+  // Platzhalter-Kennungen: bitte durch die echten IDs aus Google Analytics /
+  // Google Tag Manager ersetzen, sobald diese vorliegen. Solange hier ein
+  // Platzhalter steht, wird bewusst kein Netzwerk-Request an Google ausgelöst.
+  var GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+  var GTM_CONTAINER_ID = 'GTM-XXXXXXX';
+
   function getConsent() {
     try { return JSON.parse(localStorage.getItem(CONSENT_KEY)); }
     catch (e) { return null; }
   }
   function setConsent(value) {
     try { localStorage.setItem(CONSENT_KEY, JSON.stringify(value)); } catch (e) {}
+    applyConsent(value);
   }
   function showBanner() {
     if (banner) banner.classList.add('is-visible');
@@ -96,33 +103,124 @@
     if (banner) banner.classList.remove('is-visible');
   }
 
-  if (banner) {
-    if (!getConsent()) {
-      window.setTimeout(showBanner, 600);
+  var gaLoaded = false;
+  function loadGoogleAnalytics() {
+    if (gaLoaded) return;
+    if (GA_MEASUREMENT_ID.indexOf('XXXX') !== -1) {
+      console.log('[Cookie-Consent] Google Analytics zugelassen, aber noch keine echte Measurement-ID hinterlegt (main.js, GA_MEASUREMENT_ID).');
+      return;
     }
+    gaLoaded = true;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { window.dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', GA_MEASUREMENT_ID);
+    window.gtag = gtag;
+  }
+
+  var gtmLoaded = false;
+  function loadGoogleTagManager() {
+    if (gtmLoaded) return;
+    if (GTM_CONTAINER_ID.indexOf('XXXX') !== -1) {
+      console.log('[Cookie-Consent] Google Tag Manager zugelassen, aber noch keine echte Container-ID hinterlegt (main.js, GTM_CONTAINER_ID).');
+      return;
+    }
+    gtmLoaded = true;
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || [];
+      w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+      var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l !== 'dataLayer' ? '&l=' + l : '';
+      j.async = true;
+      j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', GTM_CONTAINER_ID);
+  }
+
+  function applyConsent(consent) {
+    if (!consent) return;
+    if (consent.analytics) loadGoogleAnalytics();
+    if (consent.tag_manager) loadGoogleTagManager();
+  }
+
+  function setToggleStates(consent) {
+    document.querySelectorAll('[data-cookie-category]').forEach(function (input) {
+      var cat = input.getAttribute('data-cookie-category');
+      input.checked = !!(consent && consent[cat]);
+    });
+  }
+
+  if (banner) {
+    var existingConsent = getConsent();
+    if (!existingConsent) {
+      window.setTimeout(showBanner, 600);
+    } else {
+      applyConsent(existingConsent);
+    }
+    setToggleStates(existingConsent);
 
     var acceptBtn = document.getElementById('cookie-accept');
-    var necessaryBtn = document.getElementById('cookie-necessary');
-    var detailsToggle = document.getElementById('cookie-details-toggle');
-    var details = document.getElementById('cookie-details');
+    var rejectBtn = document.getElementById('cookie-reject');
+    var saveBtn = document.getElementById('cookie-save');
+    var settingsToggle = document.getElementById('cookie-details-toggle');
+    var categoriesPanel = document.getElementById('cookie-categories');
+    var saveRow = document.getElementById('cookie-save-row');
 
     if (acceptBtn) acceptBtn.addEventListener('click', function () {
-      setConsent({ necessary: true, statistics: true, ts: Date.now() });
+      var consent = { necessary: true, analytics: true, tag_manager: true, ts: Date.now() };
+      setConsent(consent);
+      setToggleStates(consent);
       hideBanner();
     });
-    if (necessaryBtn) necessaryBtn.addEventListener('click', function () {
-      setConsent({ necessary: true, statistics: false, ts: Date.now() });
+    if (rejectBtn) rejectBtn.addEventListener('click', function () {
+      var consent = { necessary: true, analytics: false, tag_manager: false, ts: Date.now() };
+      setConsent(consent);
+      setToggleStates(consent);
       hideBanner();
     });
-    if (detailsToggle && details) detailsToggle.addEventListener('click', function () {
-      var open = details.classList.toggle('is-open');
-      detailsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (saveBtn) saveBtn.addEventListener('click', function () {
+      var consent = { necessary: true, ts: Date.now() };
+      document.querySelectorAll('[data-cookie-category]').forEach(function (input) {
+        consent[input.getAttribute('data-cookie-category')] = input.checked;
+      });
+      setConsent(consent);
+      hideBanner();
+    });
+    if (settingsToggle && categoriesPanel) settingsToggle.addEventListener('click', function () {
+      var willOpen = categoriesPanel.hasAttribute('hidden');
+      if (willOpen) {
+        categoriesPanel.removeAttribute('hidden');
+        if (saveRow) saveRow.removeAttribute('hidden');
+        settingsToggle.setAttribute('aria-expanded', 'true');
+        settingsToggle.textContent = 'Einstellungen ausblenden';
+      } else {
+        categoriesPanel.setAttribute('hidden', '');
+        if (saveRow) saveRow.setAttribute('hidden', '');
+        settingsToggle.setAttribute('aria-expanded', 'false');
+        settingsToggle.textContent = 'Einstellungen anzeigen';
+      }
+    });
+
+    document.querySelectorAll('[data-cookie-disclosure]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var details = btn.closest('.cookie-category').querySelector('.cookie-category__details');
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        if (details) details.classList.toggle('is-open', !open);
+      });
     });
 
     document.querySelectorAll('[data-open-cookie-settings]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         showBanner();
+        setToggleStates(getConsent());
+        if (settingsToggle && categoriesPanel && categoriesPanel.hasAttribute('hidden')) {
+          settingsToggle.click();
+        }
       });
     });
   }

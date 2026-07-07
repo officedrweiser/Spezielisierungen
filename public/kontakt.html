@@ -224,16 +224,68 @@
 </footer>
 
 <div class="cookie-banner" id="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie-Einstellungen">
-  <h3>Cookie-Einstellungen</h3>
-  <p>Wir verwenden Cookies, um Ihr Online-Erlebnis zu verbessern, während Sie unsere Website nutzen. Die als notwendig kategorisierten Cookies werden benötigt, um die korrekte Funktionalität der Website sicherzustellen. Mehr Informationen finden Sie in unserer <a href="/datenschutz.html">Datenschutzerklärung</a>.</p>
+  <div class="cookie-banner__header">
+    <img src="/assets/images/logo/mw-logo-original.png" alt="" class="cookie-banner__logo">
+    <h3>Cookie-Einstellungen</h3>
+  </div>
+  <p>Wir verwenden Cookies um Ihr Online-Erlebnis zu verbessern während Sie unsere Website verwenden. Die als notwendig kategorisierten Cookies werden benötigt, um die korrekte Funktionalität der Website sicherzustellen. Mehr Informationen finden Sie in unserer <a href="/datenschutz.html">Datenschutzerklärung</a>.</p>
+
+  <div class="cookie-categories" id="cookie-categories" hidden>
+    <div class="cookie-category">
+      <div class="cookie-category__row">
+        <span class="cookie-category__name">Technisch notwendige</span>
+        <span class="cookie-category__badge">Immer aktiv</span>
+      </div>
+    </div>
+
+    <div class="cookie-category">
+      <div class="cookie-category__row">
+        <button type="button" class="cookie-category__disclosure" data-cookie-disclosure aria-expanded="false">
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Google Analytics</span>
+        </button>
+        <label class="cookie-switch">
+          <input type="checkbox" data-cookie-category="analytics">
+          <span class="cookie-switch__track"></span>
+          <span class="sr-only">Google Analytics Cookies aktivieren</span>
+        </label>
+      </div>
+      <div class="cookie-category__details">
+        <div class="cookie-detail-row"><span>Name</span><span>Google Analytics</span></div>
+        <div class="cookie-detail-row"><span>Anbieter</span><span>Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland</span></div>
+        <div class="cookie-detail-row"><span>Zweck</span><span>Cookie von Google für Website-Analysen. Erzeugt statistische Daten darüber, wie der Besucher die Website nutzt.</span></div>
+        <div class="cookie-detail-row"><span>Datenschutzerklärung</span><span><a href="https://policies.google.com/privacy?hl=de" target="_blank" rel="noopener">https://policies.google.com/privacy?hl=de</a></span></div>
+      </div>
+    </div>
+
+    <div class="cookie-category">
+      <div class="cookie-category__row">
+        <button type="button" class="cookie-category__disclosure" data-cookie-disclosure aria-expanded="false">
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Google Tag Manager</span>
+        </button>
+        <label class="cookie-switch">
+          <input type="checkbox" data-cookie-category="tag_manager">
+          <span class="cookie-switch__track"></span>
+          <span class="sr-only">Google Tag Manager Cookies aktivieren</span>
+        </label>
+      </div>
+      <div class="cookie-category__details">
+        <div class="cookie-detail-row"><span>Name</span><span>Google Tag Manager</span></div>
+        <div class="cookie-detail-row"><span>Anbieter</span><span>Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland</span></div>
+        <div class="cookie-detail-row"><span>Zweck</span><span>Cookie von Google zur Steuerung der erweiterten Script- und Ereignisbehandlung.</span></div>
+        <div class="cookie-detail-row"><span>Datenschutzerklärung</span><span><a href="https://policies.google.com/privacy?hl=de" target="_blank" rel="noopener">https://policies.google.com/privacy?hl=de</a></span></div>
+      </div>
+    </div>
+  </div>
+
   <div class="cookie-actions">
     <button class="btn btn--primary" id="cookie-accept">Akzeptieren</button>
-    <button class="btn btn--outline" id="cookie-necessary">Nur technisch notwendige</button>
-    <button class="cookie-more-link" id="cookie-details-toggle" aria-expanded="false">Details anzeigen</button>
+    <button class="btn btn--outline" id="cookie-reject">Alle Ablehnen</button>
+    <button class="cookie-more-link" id="cookie-details-toggle" aria-expanded="false">Einstellungen anzeigen</button>
   </div>
-  <div class="cookie-details" id="cookie-details">
-    <div class="cookie-row"><span>Technisch notwendig</span><span>Immer aktiv</span></div>
-    <p style="margin-top:8px;">Diese Session-Cookies sind für die korrekte Funktion der Website unbedingt erforderlich (z.&nbsp;B. Speicherung Ihrer Cookie-Einstellung) und können nicht deaktiviert werden.</p>
+  <div class="cookie-actions" id="cookie-save-row" hidden>
+    <button class="btn btn--primary btn--block" id="cookie-save">Präferenzen speichern</button>
   </div>
 </div>
 
