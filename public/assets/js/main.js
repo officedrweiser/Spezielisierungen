@@ -169,17 +169,32 @@
     var categoriesPanel = document.getElementById('cookie-categories');
     var saveRow = document.getElementById('cookie-save-row');
 
+    function collapsePanel() {
+      if (!settingsToggle || !categoriesPanel) return;
+      categoriesPanel.setAttribute('hidden', '');
+      if (saveRow) saveRow.setAttribute('hidden', '');
+      settingsToggle.setAttribute('aria-expanded', 'false');
+      settingsToggle.textContent = 'Einstellungen anzeigen';
+      document.querySelectorAll('[data-cookie-disclosure]').forEach(function (btn) {
+        btn.setAttribute('aria-expanded', 'false');
+        var details = btn.closest('.cookie-category').querySelector('.cookie-category__details');
+        if (details) details.classList.remove('is-open');
+      });
+    }
+
     if (acceptBtn) acceptBtn.addEventListener('click', function () {
       var consent = { necessary: true, analytics: true, tag_manager: true, ts: Date.now() };
       setConsent(consent);
       setToggleStates(consent);
       hideBanner();
+      collapsePanel();
     });
     if (rejectBtn) rejectBtn.addEventListener('click', function () {
       var consent = { necessary: true, analytics: false, tag_manager: false, ts: Date.now() };
       setConsent(consent);
       setToggleStates(consent);
       hideBanner();
+      collapsePanel();
     });
     if (saveBtn) saveBtn.addEventListener('click', function () {
       var consent = { necessary: true, ts: Date.now() };
@@ -188,6 +203,7 @@
       });
       setConsent(consent);
       hideBanner();
+      collapsePanel();
     });
     if (settingsToggle && categoriesPanel) settingsToggle.addEventListener('click', function () {
       var willOpen = categoriesPanel.hasAttribute('hidden');
@@ -216,11 +232,9 @@
     document.querySelectorAll('[data-open-cookie-settings]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        showBanner();
+        collapsePanel();
         setToggleStates(getConsent());
-        if (settingsToggle && categoriesPanel && categoriesPanel.hasAttribute('hidden')) {
-          settingsToggle.click();
-        }
+        showBanner();
       });
     });
   }
