@@ -161,7 +161,9 @@
   if (banner) {
     var existingConsent = getConsent();
     if (!existingConsent) {
-      window.setTimeout(showBanner, 600);
+      // Sofort zeigen (keine Verzögerung): solange keine Zustimmung vorliegt,
+      // soll die Website auf jeder Seite von Anfang an gesperrt sein.
+      showBanner();
     } else {
       applyConsent(existingConsent);
     }
