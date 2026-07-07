@@ -81,6 +81,7 @@
   /* ---------- Cookie consent banner ---------- */
   var CONSENT_KEY = 'mw_cookie_consent';
   var banner = document.getElementById('cookie-banner');
+  var cookieBackdrop = document.getElementById('cookie-backdrop');
 
   // Platzhalter-Kennungen: bitte durch die echten IDs aus Google Analytics /
   // Google Tag Manager ersetzen, sobald diese vorliegen. Solange hier ein
@@ -98,9 +99,13 @@
   }
   function showBanner() {
     if (banner) banner.classList.add('is-visible');
+    if (cookieBackdrop) cookieBackdrop.classList.add('is-visible');
+    document.body.style.overflow = 'hidden';
   }
   function hideBanner() {
     if (banner) banner.classList.remove('is-visible');
+    if (cookieBackdrop) cookieBackdrop.classList.remove('is-visible');
+    document.body.style.overflow = '';
   }
 
   var gaLoaded = false;
