@@ -318,25 +318,6 @@ h3 { font-size: 1.3rem; }
   transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s var(--ease);
 }
 .back-to-top.is-visible { opacity: 1; visibility: visible; transform: translateY(0); }
-.back-to-top__arrow {
-  width: 34px; height: 34px;
-  border-radius: 50%;
-  border: 1px solid var(--color-line);
-  background: rgba(255,255,255,0.9);
-  position: relative;
-  transition: border-color 0.25s var(--ease), background 0.25s var(--ease), transform 0.25s var(--ease);
-  box-shadow: var(--shadow-card);
-}
-.back-to-top__arrow::before {
-  content: '';
-  position: absolute;
-  left: 50%; top: 52%;
-  width: 8px; height: 8px;
-  border-left: 1.5px solid var(--color-ink);
-  border-top: 1.5px solid var(--color-ink);
-  transform: translate(-50%, -50%) rotate(45deg);
-  transition: border-color 0.25s var(--ease);
-}
 .back-to-top__label {
   font-size: 0.66rem;
   font-weight: 600;
@@ -345,10 +326,33 @@ h3 { font-size: 1.3rem; }
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   color: var(--color-ink-soft);
+  transition: color 0.25s var(--ease);
 }
-.back-to-top:hover .back-to-top__arrow { border-color: var(--color-primary); transform: translateY(-3px); }
-.back-to-top:hover .back-to-top__arrow::before { border-color: var(--color-primary); }
+.back-to-top__line {
+  position: relative;
+  width: 1px;
+  height: 46px;
+  background: var(--color-line);
+  overflow: hidden;
+}
+.back-to-top__line::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -50%;
+  width: 1px; height: 50%;
+  background: var(--color-primary);
+  animation: back-to-top-move 1.8s var(--ease) infinite;
+}
+@keyframes back-to-top-move {
+  0%   { transform: translateY(100%); }
+  60%  { transform: translateY(-200%); }
+  100% { transform: translateY(-200%); }
+}
 .back-to-top:hover .back-to-top__label { color: var(--color-primary); }
+.back-to-top:hover .back-to-top__line { background: rgba(212,32,39,0.35); }
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top__line::after { animation: none; bottom: 0; height: 100%; }
+}
 
 /* ---------- Page header (inner pages) ---------- */
 .page-hero {
