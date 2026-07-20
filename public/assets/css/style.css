@@ -150,7 +150,20 @@ h3 { font-size: 1.3rem; }
   padding: 10px 0;
 }
 .brand { display: flex; align-items: center; gap: 12px; }
-.brand img { height: 40px; width: auto; }
+.brand-mark { display: inline-flex; align-items: center; }
+.brand-mark img { height: 40px; width: auto; }
+/* Roter Puls-Strich links und rechts des Logos – setzt die EKG-Linie des
+   Monogramms nach außen fort (Höhe ~48,6 % = optische Mitte des Logos). */
+.brand-mark::before,
+.brand-mark::after {
+  content: '';
+  height: 2px;
+  width: 30px;
+  background: var(--color-primary);
+  flex: none;
+}
+.brand-mark::before { margin-right: 4px; }
+.brand-mark::after { margin-left: 4px; }
 .brand-text { font-family: var(--font-serif); font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
 .brand-text span { display: block; font-family: var(--font-sans); font-weight: 500; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-soft); }
 .site-header:not(.is-scrolled):not(.is-solid) .brand-text,
@@ -759,12 +772,35 @@ h3 { font-size: 1.3rem; }
   .footer-bottom { flex-direction: column; align-items: flex-start; }
 }
 
+/* Mobile: Hero als Bild-Banner oben + Text darunter, damit das komplette
+   Diashow-Bild sichtbar ist (statt nur ein schmaler Mittelausschnitt). */
+@media (max-width: 768px) {
+  .hero { flex-direction: column; min-height: 0; }
+  .hero-media {
+    position: relative; inset: auto;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+  }
+  .hero-media::after {
+    background: linear-gradient(180deg, rgba(15,15,17,0.15) 0%, rgba(15,15,17,0.15) 60%, rgba(15,15,17,0.55) 100%);
+  }
+  .hero-content {
+    position: relative;
+    background: var(--color-ink);
+    width: 100%;
+    padding-top: 40px;
+    padding-bottom: 48px;
+  }
+  .hero h1 { text-shadow: none; }
+  .hero .lede { text-shadow: none; }
+  .scroll-hint { display: none; }
+}
+
 @media (max-width: 600px) {
   .section { padding: 64px 0; }
-  .hero-content { padding-top: 100px; }
   .cta-banner { padding: 36px 24px; }
   .cookie-banner { width: calc(100% - 24px); padding: 22px; }
-  .scroll-hint { bottom: 18px; }
   .back-to-top { left: 14px; bottom: 18px; }
   .back-to-top__label { display: none; }
+  .brand-mark::before, .brand-mark::after { width: 16px; }
 }
