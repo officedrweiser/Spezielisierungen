@@ -15,15 +15,22 @@
     }
   }
 
-  /* ---------- Header scroll state ---------- */
+  /* ---------- Header scroll state + Zurück-nach-oben ---------- */
   var header = document.querySelector('.site-header');
-  if (header) {
-    var updateHeader = function () {
-      if (window.scrollY > 12) header.classList.add('is-scrolled');
-      else header.classList.remove('is-scrolled');
-    };
-    updateHeader();
-    window.addEventListener('scroll', updateHeader, { passive: true });
+  var backToTop = document.getElementById('back-to-top');
+
+  var onWindowScroll = function () {
+    var y = window.scrollY;
+    if (header) header.classList.toggle('is-scrolled', y > 12);
+    if (backToTop) backToTop.classList.toggle('is-visible', y > window.innerHeight * 0.6);
+  };
+  onWindowScroll();
+  window.addEventListener('scroll', onWindowScroll, { passive: true });
+
+  if (backToTop) {
+    backToTop.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   }
 
   /* ---------- Mobile nav ---------- */
