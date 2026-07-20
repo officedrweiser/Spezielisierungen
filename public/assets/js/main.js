@@ -1,6 +1,20 @@
 (function () {
   'use strict';
 
+  /* ---------- Hero-Diashow ---------- */
+  var slideshow = document.getElementById('hero-slideshow');
+  if (slideshow) {
+    var slides = slideshow.querySelectorAll('.hero-slide');
+    if (slides.length > 1) {
+      var current = 0;
+      window.setInterval(function () {
+        slides[current].classList.remove('is-active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('is-active');
+      }, 5000); // alle 5 Sekunden zum nächsten Bild
+    }
+  }
+
   /* ---------- Header scroll state ---------- */
   var header = document.querySelector('.site-header');
   if (header) {

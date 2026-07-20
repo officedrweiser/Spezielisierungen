@@ -216,14 +216,28 @@ h3 { font-size: 1.3rem; }
 }
 .hero-media::after {
   content: '';
-  position: absolute; inset: 0;
+  position: absolute; inset: 0; z-index: 1;
   background: linear-gradient(180deg, rgba(15,15,17,0.55) 0%, rgba(15,15,17,0.45) 40%, rgba(15,15,17,0.85) 100%);
+}
+
+/* Hero-Diashow: drei Bilder, die sich per Crossfade abwechseln und wiederholen */
+.hero-slide {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transform: scale(1.06);
+  transition: opacity 1.4s var(--ease), transform 7s ease-out;
+}
+.hero-slide.is-active {
+  opacity: 1;
+  transform: scale(1);
 }
 .hero-content { position: relative; z-index: 1; padding-top: 120px; padding-bottom: 80px; }
 .hero-content .eyebrow { color: #F2B7B9; }
 .hero-content .eyebrow::before { background: #F2B7B9; }
-.hero h1 { max-width: 760px; }
-.hero .lede { max-width: 560px; color: rgba(255,255,255,0.85); font-size: 1.2rem; }
+.hero h1 { max-width: 760px; color: var(--color-white); text-shadow: 0 2px 24px rgba(15,15,17,0.45); }
+.hero .lede { max-width: 560px; color: rgba(255,255,255,0.92); font-size: 1.2rem; text-shadow: 0 1px 12px rgba(15,15,17,0.4); }
 .hero-actions { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
 
 .hero-facts {
