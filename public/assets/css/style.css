@@ -149,22 +149,25 @@ h3 { font-size: 1.3rem; }
   box-shadow: 0 2px 24px rgba(27,27,31,0.08);
   padding: 10px 0;
 }
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand-mark { display: inline-flex; align-items: center; }
+.brand { display: flex; align-items: center; gap: 12px; position: relative; }
+.brand-mark { display: inline-flex; align-items: center; position: relative; z-index: 1; }
 .brand-mark img { height: 40px; width: auto; }
-/* Roter Puls-Strich links und rechts des Logos – setzt die EKG-Linie des
-   Monogramms nach außen fort (Höhe ~48,6 % = optische Mitte des Logos). */
-.brand-mark::before,
-.brand-mark::after {
+/* Roter Puls-Strich läuft auf Logo-Höhe durch die Wort-Bild-Marke und ragt
+   links/rechts ein Stück hinaus (angelehnt an die Drucksorten der Kanzlei).
+   Höhe = optische Mitte des Logos (~48,6 %), wo die EKG-Linie des Monogramms sitzt. */
+.brand::before {
   content: '';
-  height: 2px;
-  width: 30px;
+  position: absolute;
+  z-index: 0;
+  top: 48%;
+  left: -18px;
+  right: -34px;
+  height: 1.5px;
   background: var(--color-primary);
-  flex: none;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
-.brand-mark::before { margin-right: 4px; }
-.brand-mark::after { margin-left: 4px; }
-.brand-text { font-family: var(--font-serif); font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
+.brand-text { position: relative; z-index: 1; font-family: var(--font-serif); font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
 .brand-text span { display: block; font-family: var(--font-sans); font-weight: 500; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-soft); }
 .site-header:not(.is-scrolled):not(.is-solid) .brand-text,
 .site-header:not(.is-scrolled):not(.is-solid) .brand-text span { color: var(--color-white); }
@@ -498,6 +501,56 @@ h3 { font-size: 1.3rem; }
 .portrait-placeholder strong { font-family: var(--font-serif); font-size: 1.1rem; }
 .portrait-placeholder span { font-size: 0.85rem; color: var(--color-ink-faint); max-width: 220px; }
 
+/* ---------- Google-Bewertungen (rotierend) ---------- */
+.reviews { max-width: 760px; margin: 0 auto; }
+.reviews-track { position: relative; display: grid; }
+.review-slide {
+  grid-area: 1 / 1;
+  margin: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--color-white);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 44px 48px 40px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease), visibility 0.6s var(--ease);
+}
+.review-slide.is-active { opacity: 1; visibility: visible; transform: translateY(0); }
+.review-stars { color: #E7B10A; letter-spacing: 4px; font-size: 1.05rem; margin-bottom: 20px; }
+.review-text {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.12rem;
+  line-height: 1.7;
+  color: var(--color-ink);
+  margin-bottom: 24px;
+}
+.review-meta { display: flex; flex-direction: column; gap: 3px; }
+.review-name { font-weight: 700; color: var(--color-ink); }
+.review-source {
+  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--color-ink-faint); text-transform: uppercase;
+}
+.reviews-dots { display: flex; justify-content: center; gap: 10px; margin-top: 26px; }
+.reviews-dots button {
+  width: 9px; height: 9px; border-radius: 50%;
+  border: none; padding: 0; cursor: pointer;
+  background: var(--color-line);
+  transition: background 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.reviews-dots button:hover { background: var(--color-primary-light); }
+.reviews-dots button.is-active { background: var(--color-primary); transform: scale(1.25); }
+@media (max-width: 600px) {
+  .review-slide { padding: 32px 24px 28px; }
+  .review-text { font-size: 1.02rem; }
+}
+
 .stat-row { display: flex; gap: 40px; margin-top: 36px; flex-wrap: wrap; }
 .stat-row strong { display: block; font-family: var(--font-serif); font-size: 2rem; color: var(--color-primary); }
 .stat-row span { font-size: 0.85rem; color: var(--color-ink-soft); }
@@ -802,5 +855,5 @@ h3 { font-size: 1.3rem; }
   .cookie-banner { width: calc(100% - 24px); padding: 22px; }
   .back-to-top { left: 14px; bottom: 18px; }
   .back-to-top__label { display: none; }
-  .brand-mark::before, .brand-mark::after { width: 16px; }
+  .brand::before { right: -10px; left: -12px; }
 }

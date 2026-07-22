@@ -15,6 +15,44 @@
     }
   }
 
+  /* ---------- Google-Bewertungen (rotierend) ---------- */
+  var reviews = document.getElementById('reviews');
+  if (reviews) {
+    var rSlides = reviews.querySelectorAll('.review-slide');
+    var dotsWrap = document.getElementById('reviews-dots');
+    if (rSlides.length > 1) {
+      var rIdx = 0;
+      var rTimer;
+      var dots = [];
+
+      var goTo = function (n) {
+        rSlides[rIdx].classList.remove('is-active');
+        if (dots[rIdx]) dots[rIdx].classList.remove('is-active');
+        rIdx = (n + rSlides.length) % rSlides.length;
+        rSlides[rIdx].classList.add('is-active');
+        if (dots[rIdx]) dots[rIdx].classList.add('is-active');
+      };
+      var startTimer = function () {
+        rTimer = window.setInterval(function () { goTo(rIdx + 1); }, 7000);
+      };
+      var resetTimer = function () { window.clearInterval(rTimer); startTimer(); };
+
+      if (dotsWrap) {
+        rSlides.forEach(function (_, i) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.setAttribute('role', 'tab');
+          b.setAttribute('aria-label', 'Bewertung ' + (i + 1));
+          if (i === 0) b.classList.add('is-active');
+          b.addEventListener('click', function () { goTo(i); resetTimer(); });
+          dotsWrap.appendChild(b);
+          dots.push(b);
+        });
+      }
+      startTimer();
+    }
+  }
+
   /* ---------- Header scroll state + Zurück-nach-oben ---------- */
   var header = document.querySelector('.site-header');
   var backToTop = document.getElementById('back-to-top');
