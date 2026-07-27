@@ -3,6 +3,10 @@
 Ziel: Jede Anfrage über das Formular auf `/kontakt.html` landet als E-Mail im
 Postfach **office@drweiser.at**.
 
+> **Wichtig vorweg:** Alle hier beschriebenen Dateien liegen auf dem Branch
+> **`claude/kontaktformular-setup-q89qii`**, nicht auf dem Standard-Branch des
+> Repositories. Details dazu in Schritt 2.
+
 Diese Anleitung setzt **keine** Programmierkenntnisse voraus. Sie brauchen nur:
 
 - Zugang zu Ihrem Webhosting (FTP-Zugangsdaten oder Hosting-Login)
@@ -114,9 +118,40 @@ Dokumente kopieren, die geteilt werden.
 
 ## Schritt 2: Projektdateien auf den Computer laden
 
-1. Öffnen Sie das GitHub-Repository im Browser.
-2. Grüner Button **`Code`** → **`Download ZIP`**.
-3. ZIP-Datei entpacken (Rechtsklick → „Alle extrahieren…").
+> ### ⚠️ Unbedingt den richtigen Branch verwenden
+>
+> Das Repository hat mehrere Entwicklungsstände („Branches"). Das
+> Kontaktformular liegt auf dem Branch
+> **`claude/kontaktformular-setup-q89qii`**.
+>
+> Wenn Sie GitHub einfach öffnen, landen Sie auf einem **anderen** Branch –
+> dort fehlt der Ordner `public/api`, und die ZIP-Datei wäre unbrauchbar.
+
+**Der einfachste Weg – direkter Download-Link:**
+
+```
+https://github.com/officedrweiser/Spezielisierungen/archive/refs/heads/claude/kontaktformular-setup-q89qii.zip
+```
+
+Diesen Link in die Adresszeile des Browsers kopieren, Enter drücken – der
+Download startet sofort mit dem richtigen Stand.
+
+**Alternativ über die Oberfläche:**
+
+1. Repository öffnen:
+   `https://github.com/officedrweiser/Spezielisierungen`
+2. Oben links steht ein Auswahlfeld mit einem Branch-Namen (Symbol: kleine
+   Verzweigung). Daraufklicken und
+   **`claude/kontaktformular-setup-q89qii`** auswählen.
+3. Zur Kontrolle: In der Dateiliste muss jetzt der Ordner **`public`** und
+   darin **`api`** zu sehen sein. Fehlt er, ist noch der falsche Branch aktiv.
+4. Grüner Button **`Code`** → **`Download ZIP`**.
+
+Anschließend die ZIP-Datei entpacken (Rechtsklick → „Alle extrahieren…").
+
+> **Kontrolle nach dem Entpacken:** Im Ordner muss der Pfad
+> `public/api/contact.php` existieren. Wenn nicht, wurde der falsche Branch
+> heruntergeladen – noch einmal mit dem Direktlink oben versuchen.
 
 Sie haben jetzt einen Ordner mit u. a. diesen Unterordnern:
 
