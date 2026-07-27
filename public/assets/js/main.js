@@ -341,12 +341,31 @@
       setStatus('', '');
       statusBox.className = 'form-status';
 
-      fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-        .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      // Node-Server beantwortet /api/contact direkt. Auf klassischem
+      // PHP-Webhosting ohne Rewrite-Regel greift der Fallback auf die
+      // PHP-Variante desselben Endpunkts.
+      function post(url) {
+        return fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      }
+
+      post('/api/contact')
+        .then(function (res) {
+          if (res.status === 404 || res.status === 405 || res.status === 501) {
+            return post('/api/contact.php');
+          }
+          return res;
+        })
+        .then(function (res) {
+          return res.text().then(function (raw) {
+            var body = {};
+            try { body = raw ? JSON.parse(raw) : {}; } catch (err) { /* keine JSON-Antwort */ }
+            return { ok: res.ok, body: body };
+          });
+        })
         .then(function (result) {
           if (result.ok) {
             setStatus('Vielen Dank! Ihre Anfrage wurde übermittelt – wir melden uns so rasch wie möglich.', 'success');

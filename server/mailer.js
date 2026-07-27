@@ -2,6 +2,11 @@ const nodemailer = require('nodemailer');
 
 const RECIPIENT = process.env.CONTACT_RECIPIENT || 'office@drweiser.at';
 
+// drweiser.at ist mit DMARC "p=reject" und SPF "-all" geschützt. Als Absender
+// darf deshalb nur eine Adresse stehen, für die das SMTP-Postfach auch
+// wirklich senden darf – sonst weist der empfangende Server die Mail ab.
+const SENDER = process.env.SMTP_FROM || process.env.SMTP_USER || RECIPIENT;
+
 let transporterPromise = null;
 
 function buildTransporter() {
@@ -45,7 +50,7 @@ async function sendContactMail({ name, email, phone, topic, message }) {
   const { transporter, isDryRun } = getTransporter();
 
   const info = await transporter.sendMail({
-    from: `"Website-Kontaktformular" <${process.env.SMTP_FROM || 'website@drweiser.at'}>`,
+    from: `"Website-Kontaktformular" <${SENDER}>`,
     to: RECIPIENT,
     replyTo: email,
     subject: `Neue Kontaktanfrage von der Website${topic ? ' – ' + topic : ''}`,

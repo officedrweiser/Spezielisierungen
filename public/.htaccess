@@ -1,0 +1,37 @@
+# Konfiguration für klassisches Apache-Webhosting (A1, World4You, Plesk, cPanel …).
+# Auf einem Node.js-Hoster wird diese Datei ignoriert – dort übernimmt
+# server/server.js dieselben Aufgaben.
+
+# Das Formular sendet an /api/contact – hier auf das PHP-Skript umleiten.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^api/contact/?$ /api/contact.php [L]
+</IfModule>
+
+# Zugangsdaten und Vorlagen niemals ausliefern.
+<Files "config.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+
+<Files "config.example.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+
+ErrorDocument 404 /404.html
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

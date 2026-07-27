@@ -11,6 +11,19 @@ const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '20kb' }));
+
+// public/api/*.php ist der Ersatz-Endpunkt für klassisches PHP-Webhosting.
+// Unter Node übernimmt POST /api/contact weiter unten – die PHP-Dateien
+// dürfen hier keinesfalls als Klartext ausgeliefert werden.
+app.use((req, res, next) => {
+  if (req.path.toLowerCase().endsWith('.php')) {
+    return res.status(404).sendFile(path.join(PUBLIC_DIR, '404.html'), (err) => {
+      if (err) res.status(404).send('Seite nicht gefunden.');
+    });
+  }
+  next();
+});
+
 app.use(express.static(PUBLIC_DIR, { extensions: ['html'] }));
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
