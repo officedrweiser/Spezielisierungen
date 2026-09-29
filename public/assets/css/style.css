@@ -149,25 +149,10 @@ h3 { font-size: 1.3rem; }
   box-shadow: 0 2px 24px rgba(27,27,31,0.08);
   padding: 10px 0;
 }
-.brand { display: flex; align-items: center; gap: 12px; position: relative; }
-.brand-mark { display: inline-flex; align-items: center; position: relative; z-index: 1; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark { display: inline-flex; align-items: center; }
 .brand-mark img { height: 40px; width: auto; }
-/* Roter Puls-Strich läuft auf Logo-Höhe durch die Wort-Bild-Marke und ragt
-   links/rechts ein Stück hinaus (angelehnt an die Drucksorten der Kanzlei).
-   Höhe = optische Mitte des Logos (~48,6 %), wo die EKG-Linie des Monogramms sitzt. */
-.brand::before {
-  content: '';
-  position: absolute;
-  z-index: 0;
-  top: 48%;
-  left: -18px;
-  right: -34px;
-  height: 1.5px;
-  background: var(--color-primary);
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-.brand-text { position: relative; z-index: 1; font-family: var(--font-serif); font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
+.brand-text { font-family: var(--font-serif); font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
 .brand-text span { display: block; font-family: var(--font-sans); font-weight: 500; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-soft); }
 .site-header:not(.is-scrolled):not(.is-solid) .brand-text,
 .site-header:not(.is-scrolled):not(.is-solid) .brand-text span { color: var(--color-white); }
@@ -384,16 +369,28 @@ h3 { font-size: 1.3rem; }
   width: 60%; height: 160%;
   background: radial-gradient(circle, rgba(212,32,39,0.35) 0%, rgba(212,32,39,0) 70%);
 }
-/* Kopfbereich mit Foto (z. B. Impressum): Bild als Banner, links abgedunkelt,
-   damit die weiße Überschrift gut lesbar bleibt. */
+/* Kopfbereich mit Foto: Das Foto wird unverändert gezeigt (keine Abdunkelung,
+   kein Farbschleier). Der Text steht lesbar in einem weißen Feld unten links. */
 .page-hero--image {
-  padding: 200px 0 110px;
-  background:
-    linear-gradient(90deg, rgba(27,27,31,0.88) 0%, rgba(27,27,31,0.6) 45%, rgba(27,27,31,0.25) 100%),
-    var(--page-hero-image) center / cover no-repeat,
-    var(--color-ink);
+  padding: 250px 0 56px;
+  color: var(--color-ink);
+  background: var(--page-hero-image) center / cover no-repeat, var(--color-paper-alt);
 }
-.page-hero--image::after { opacity: 0.45; }
+.page-hero--image::after { display: none; }
+.page-hero__panel {
+  max-width: 680px;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 18px 50px rgba(27, 27, 31, 0.22);
+  padding: 30px 36px 32px;
+}
+.page-hero__panel > :last-child { margin-bottom: 0; }
+.page-hero.page-hero--image .breadcrumb { color: var(--color-ink-faint); margin-bottom: 14px; }
+.page-hero.page-hero--image .breadcrumb a:hover { color: var(--color-primary); }
+.page-hero.page-hero--image .eyebrow { color: var(--color-primary); }
+.page-hero.page-hero--image .eyebrow::before { background: var(--color-primary); }
+.page-hero.page-hero--image h1 { color: var(--color-ink); }
+.page-hero.page-hero--image p { color: var(--color-ink-soft); margin-top: 14px; }
 .page-hero .container { position: relative; }
 .page-hero .eyebrow { color: #F2B7B9; }
 .page-hero .eyebrow::before { background: #F2B7B9; }
@@ -532,6 +529,18 @@ h3 { font-size: 1.3rem; }
   transition: opacity 0.6s var(--ease), transform 0.6s var(--ease), visibility 0.6s var(--ease);
 }
 .review-slide.is-active { opacity: 1; visibility: visible; transform: translateY(0); }
+/* Google-Logo („G“) oben rechts im Bewertungsfeld */
+.review-slide { position: relative; }
+.review-slide::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  width: 26px;
+  height: 26px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+}
 .review-stars { color: #E7B10A; letter-spacing: 4px; font-size: 1.05rem; margin-bottom: 20px; }
 .review-text {
   font-family: var(--font-serif);
@@ -857,7 +866,13 @@ h3 { font-size: 1.3rem; }
   .hero h1 { text-shadow: none; }
   .hero .lede { text-shadow: none; }
   .scroll-hint { display: none; }
-  .page-hero--image { padding: 150px 0 72px; }
+  /* Handy: Foto vollständig (ungeschnitten) als Streifen unter der Kopfzeile,
+     Titelfeld darunter, leicht überlappend. */
+  .page-hero--image {
+    padding: calc(64px + 64vw) 0 28px;
+    background: var(--page-hero-image) center 64px / 100% auto no-repeat, var(--color-paper);
+  }
+  .page-hero__panel { padding: 22px 22px 24px; }
 }
 
 @media (max-width: 600px) {
@@ -866,5 +881,4 @@ h3 { font-size: 1.3rem; }
   .cookie-banner { width: calc(100% - 24px); padding: 22px; }
   .back-to-top { left: 14px; bottom: 18px; }
   .back-to-top__label { display: none; }
-  .brand::before { right: -10px; left: -12px; }
 }
