@@ -604,6 +604,41 @@ h3 { font-size: 1.3rem; }
 .cta-banner p { color: rgba(255,255,255,0.75); margin: 0; }
 .cta-banner-actions { position: relative; z-index: 1; display: flex; gap: 16px; flex-wrap: wrap; }
 
+/* Kontakt-Banner mit Foto (Startseite): Foto rechts im Rot der Website,
+   läuft nach links weich in den dunklen Banner aus. Die Bilddatei bleibt
+   unverändert – die rote Färbung entsteht erst in der Darstellung. */
+.cta-banner--photo {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 320px;
+  padding-right: calc(44% + 32px);
+}
+.cta-banner--photo::after { display: none; }
+.cta-banner--photo::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 50%;
+  background: url('/assets/images/hero/cta-handschlag.jpg') center / cover no-repeat, var(--color-primary);
+  background-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%);
+          mask-image: linear-gradient(90deg, transparent 0%, #000 38%);
+  pointer-events: none;
+}
+@media (max-width: 900px) {
+  .cta-banner.cta-banner--photo { padding: 200px 36px 40px; min-height: 0; }
+  .cta-banner--photo::before {
+    width: 100%; bottom: auto; height: 190px;
+    -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+            mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+  }
+}
+@media (max-width: 600px) {
+  .cta-banner.cta-banner--photo { padding: 180px 24px 32px; }
+  .cta-banner--photo::before { height: 170px; }
+}
+
 /* ---------- Footer ---------- */
 .site-footer { background: var(--color-ink); color: rgba(255,255,255,0.7); padding: 72px 0 28px; }
 .footer-grid {
