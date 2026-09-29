@@ -384,6 +384,16 @@ h3 { font-size: 1.3rem; }
   width: 60%; height: 160%;
   background: radial-gradient(circle, rgba(212,32,39,0.35) 0%, rgba(212,32,39,0) 70%);
 }
+/* Kopfbereich mit Foto (z. B. Impressum): Bild als Banner, links abgedunkelt,
+   damit die weiße Überschrift gut lesbar bleibt. */
+.page-hero--image {
+  padding: 200px 0 110px;
+  background:
+    linear-gradient(90deg, rgba(27,27,31,0.88) 0%, rgba(27,27,31,0.6) 45%, rgba(27,27,31,0.25) 100%),
+    var(--page-hero-image) center / cover no-repeat,
+    var(--color-ink);
+}
+.page-hero--image::after { opacity: 0.45; }
 .page-hero .container { position: relative; }
 .page-hero .eyebrow { color: #F2B7B9; }
 .page-hero .eyebrow::before { background: #F2B7B9; }
@@ -835,7 +845,7 @@ h3 { font-size: 1.3rem; }
     aspect-ratio: 16 / 10;
   }
   .hero-media::after {
-    background: linear-gradient(180deg, rgba(15,15,17,0.15) 0%, rgba(15,15,17,0.15) 60%, rgba(15,15,17,0.55) 100%);
+    background: linear-gradient(180deg, rgba(15,15,17,0.55) 0%, rgba(15,15,17,0.12) 32%, rgba(15,15,17,0.12) 62%, rgba(15,15,17,0.55) 100%);
   }
   .hero-content {
     position: relative;
@@ -847,6 +857,7 @@ h3 { font-size: 1.3rem; }
   .hero h1 { text-shadow: none; }
   .hero .lede { text-shadow: none; }
   .scroll-hint { display: none; }
+  .page-hero--image { padding: 150px 0 72px; }
 }
 
 @media (max-width: 600px) {
