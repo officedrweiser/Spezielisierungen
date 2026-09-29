@@ -370,27 +370,17 @@ h3 { font-size: 1.3rem; }
   background: radial-gradient(circle, rgba(212,32,39,0.35) 0%, rgba(212,32,39,0) 70%);
 }
 /* Kopfbereich mit Foto: Das Foto wird unverändert gezeigt (keine Abdunkelung,
-   kein Farbschleier). Der Text steht lesbar in einem weißen Feld unten links. */
+   kein Farbschleier). Die weiße Schrift steht direkt auf dem Foto, nur mit
+   leichtem Schatten (wie auf der Startseite). */
 .page-hero--image {
-  padding: 250px 0 56px;
-  color: var(--color-ink);
-  background: var(--page-hero-image) center / cover no-repeat, var(--color-paper-alt);
+  padding: 200px 0 110px;
+  background: var(--page-hero-image) center / cover no-repeat, var(--color-ink);
 }
 .page-hero--image::after { display: none; }
-.page-hero__panel {
-  max-width: 680px;
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 18px 50px rgba(27, 27, 31, 0.22);
-  padding: 30px 36px 32px;
-}
-.page-hero__panel > :last-child { margin-bottom: 0; }
-.page-hero.page-hero--image .breadcrumb { color: var(--color-ink-faint); margin-bottom: 14px; }
-.page-hero.page-hero--image .breadcrumb a:hover { color: var(--color-primary); }
-.page-hero.page-hero--image .eyebrow { color: var(--color-primary); }
-.page-hero.page-hero--image .eyebrow::before { background: var(--color-primary); }
-.page-hero.page-hero--image h1 { color: var(--color-ink); }
-.page-hero.page-hero--image p { color: var(--color-ink-soft); margin-top: 14px; }
+.page-hero--image h1,
+.page-hero--image p,
+.page-hero--image .eyebrow,
+.page-hero--image .breadcrumb { text-shadow: 0 1px 3px rgba(15,15,17,0.5), 0 2px 24px rgba(15,15,17,0.45); }
 .page-hero .container { position: relative; }
 .page-hero .eyebrow { color: #F2B7B9; }
 .page-hero .eyebrow::before { background: #F2B7B9; }
@@ -866,13 +856,7 @@ h3 { font-size: 1.3rem; }
   .hero h1 { text-shadow: none; }
   .hero .lede { text-shadow: none; }
   .scroll-hint { display: none; }
-  /* Handy: Foto vollständig (ungeschnitten) als Streifen unter der Kopfzeile,
-     Titelfeld darunter, leicht überlappend. */
-  .page-hero--image {
-    padding: calc(64px + 64vw) 0 28px;
-    background: var(--page-hero-image) center 64px / 100% auto no-repeat, var(--color-paper);
-  }
-  .page-hero__panel { padding: 22px 22px 24px; }
+  .page-hero--image { padding: 150px 0 72px; }
 }
 
 @media (max-width: 600px) {
