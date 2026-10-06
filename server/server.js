@@ -93,7 +93,7 @@ function isForeignOrigin(req) {
 
 const contactLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 20,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.' }

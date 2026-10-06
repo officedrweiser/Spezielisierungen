@@ -14,7 +14,7 @@ const MAX_NAME_LENGTH = 120;
 const MAX_EMAIL_LENGTH = 200;
 const MAX_PHONE_LENGTH = 40;
 const MAX_MESSAGE_LENGTH = 5000;
-const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW = 900; // 15 Minuten
 const MAX_BODY_BYTES = 20000;     // wie beim Node-Server (20 KB)
 
