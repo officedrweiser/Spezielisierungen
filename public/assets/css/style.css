@@ -730,6 +730,9 @@ h3 { font-size: 1.3rem; }
 .legal-content { max-width: 780px; }
 .legal-content h2 { font-size: 1.35rem; margin-top: 2.2em; }
 .legal-content h2:first-child { margin-top: 0; }
+/* Seitenüberschrift über dem Text (gleiche Größe wie im Banner; auf schmalen
+   Handys etwas kleiner, damit „Datenschutzerklärung“ ganz hineinpasst) */
+.legal-content .legal-title { font-size: clamp(1.5rem, 7.4vw, 2.2rem); margin-bottom: 0.7em; }
 .legal-content p, .legal-content li { color: var(--color-ink-soft); }
 .legal-content ul { margin: 0 0 1em; padding-left: 1.2em; list-style: disc; }
 .legal-content a { color: var(--color-primary); text-decoration: underline; }
