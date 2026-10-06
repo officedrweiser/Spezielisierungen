@@ -232,7 +232,8 @@ h3 { font-size: 1.3rem; }
 }
 .hero-content { position: relative; z-index: 1; padding-top: 120px; padding-bottom: 80px; }
 .hero-content .eyebrow { color: #F2B7B9; }
-.hero-content .eyebrow::before { background: #F2B7B9; }
+/* Kein Bindestrich vor der Überzeile oben auf der Startseite */
+.hero-content .eyebrow::before { display: none; }
 .hero h1 { max-width: 760px; color: var(--color-white); text-shadow: 0 2px 24px rgba(15,15,17,0.45); }
 .hero .lede { max-width: 560px; color: rgba(255,255,255,0.92); font-size: 1.2rem; text-shadow: 0 1px 12px rgba(15,15,17,0.4); }
 .hero-actions { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
@@ -365,22 +366,35 @@ h3 { font-size: 1.3rem; }
   width: 60%; height: 160%;
   background: radial-gradient(circle, rgba(212,32,39,0.35) 0%, rgba(212,32,39,0) 70%);
 }
-/* Kopfbanner mit Foto (alle Unterseiten): Foto unverändert, ohne roten
-   Schimmer; auf allen Unterseiten exakt gleich hoch, damit beim Wechseln
-   zwischen den Reitern keine Höhenunterschiede entstehen. */
+/* Kopfbanner mit Foto (alle Unterseiten), Variante A:
+   - auf allen Unterseiten gleich hoch (520 px);
+   - das Foto beginnt erst unter der Kopfzeile, damit oben und unten gleich
+     viel weggeschnitten wird (Foto selbst unverändert, kein roter Schimmer);
+   - Überschrift auf allen Unterseiten auf derselben Höhe: Inhalt oben
+     ausgerichtet, die Überzeile sitzt fest darüber und verschiebt nichts. */
 .page-hero--image {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 600px;
-  padding: 60px 0 0;
-  background: var(--page-hero-image) center / cover no-repeat, var(--color-ink);
+  --header-h: 60px;
+  height: 520px;
+  padding: calc(var(--header-h) + 40px) 0 0;
+  background: var(--color-paper);
+}
+.page-hero--image::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  top: var(--header-h);
+  background: var(--page-hero-image) center / cover no-repeat;
 }
 .page-hero--image::after { display: none; }
-.page-hero--image .container { width: 100%; }
+.page-hero--image .container { z-index: 1; padding-top: 40px; }
+.page-hero--image .eyebrow { position: absolute; top: 0; margin: 0; }
+@media (max-width: 860px) { .page-hero--image { --header-h: 64px; } }
+/* Sehr schmale Handys: längster Text (Schwerpunkte) braucht etwas mehr Platz – für alle Seiten gleich */
+@media (max-width: 340px) { .page-hero--image { height: 560px; } }
 .page-hero .container { position: relative; }
 .page-hero .eyebrow { color: #F2B7B9; }
-.page-hero .eyebrow::before { background: #F2B7B9; }
+/* Kein Bindestrich vor der Überzeile in den Kopfbannern */
+.page-hero .eyebrow::before { display: none; }
 .page-hero h1 { color: var(--color-white); max-width: 720px; }
 .page-hero p { max-width: 560px; color: rgba(255,255,255,0.8); font-size: 1.1rem; }
 .breadcrumb { display: flex; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
@@ -618,6 +632,18 @@ h3 { font-size: 1.3rem; }
 /* Umrandeter Knopf bleibt lesbar, falls er rechts über dem hellen Foto steht */
 .cta-banner--photo .btn--ghost { background-color: rgba(27, 27, 31, 0.85); }
 .cta-banner--photo .btn--ghost:hover { background-color: rgba(58, 58, 64, 0.9); }
+/* Alle Kontakt-Banner gleich groß und Überschrift überall auf derselben Höhe:
+   Knöpfe immer unter dem Text, Inhalt oben ausgerichtet; wo der Text je nach
+   Seite unterschiedlich umbricht, sorgt eine gemeinsame Mindesthöhe für
+   gleich große Banner. */
+.cta-banner--photo { flex-direction: column; align-items: flex-start; justify-content: flex-start; }
+@media (max-width: 940px) { .cta-banner--photo { min-height: 292px; } }
+@media (max-width: 670px) { .cta-banner--photo { min-height: 322px; } }
+@media (max-width: 600px) { .cta-banner--photo { min-height: 282px; } }
+@media (max-width: 510px) { .cta-banner--photo { min-height: 354px; } }
+@media (max-width: 499px) { .cta-banner--photo { min-height: 380px; } }
+@media (max-width: 370px) { .cta-banner--photo { min-height: 406px; } }
+@media (max-width: 359px) { .cta-banner--photo { min-height: 443px; } }
 /* Fotobreite je Bildschirm so, dass der Text nicht über dem hellen Teil liegt */
 @media (max-width: 1200px) { .cta-banner--photo::before { width: 28%; } }
 @media (max-width: 1024px) { .cta-banner--photo::before { width: 18%; } }
