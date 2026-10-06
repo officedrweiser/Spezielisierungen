@@ -1,6 +1,10 @@
 (function () {
   'use strict';
 
+  /* ---------- Jahreszahl in der Fußzeile ---------- */
+  var yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
   /* ---------- Hero-Diashow ---------- */
   var slideshow = document.getElementById('hero-slideshow');
   if (slideshow) {

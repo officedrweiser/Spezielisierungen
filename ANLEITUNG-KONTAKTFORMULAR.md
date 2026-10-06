@@ -228,6 +228,16 @@ httpdocs/
 └── assets/
 ```
 
+### HTTPS erzwingen (einmalig, wichtig)
+
+Das Kontaktformular überträgt personenbezogene Daten. Damit niemand die Seite
+unverschlüsselt über `http://` aufruft, stellen Sie im A1-Kundenbereich
+(Plesk) bei der Domain unter **„SSL/TLS-Zertifikate“** bzw.
+**„Hosting-Einstellungen“** die Option **„Dauerhafte, SEO-sichere
+301-Weiterleitung von HTTP zu HTTPS“** ein. Das gültige Let's-Encrypt-
+Zertifikat ist bereits vorhanden. Ob es klappt: `http://drweiser.at`
+aufrufen – in der Adresszeile muss danach `https://` stehen.
+
 ---
 
 ## Schritt 5: Testen
@@ -329,7 +339,7 @@ Nur relevant, falls Sie die Website auf einen Node.js-fähigen Anbieter legen
 nicht verwendet.
 
 1. Repository beim Anbieter verbinden.
-2. Build-Befehl: `npm install` — Start-Befehl: `npm start`
+2. Build-Befehl: `npm install` — Start-Befehl: `npm start` (benötigt Node.js ab Version 20)
 3. Folgende Umgebungsvariablen („Environment Variables") setzen:
 
    | Name | Wert |
@@ -363,6 +373,7 @@ erscheint stattdessen im Terminal – praktisch zum Testen des Ablaufs.
 - [ ] `config.php` aus `config.example.php` erstellt und ausgefüllt
 - [ ] Sicherung der alten Website heruntergeladen
 - [ ] Inhalt von `public/` auf den Server hochgeladen (inkl. `.htaccess`)
+- [ ] HTTPS-Weiterleitung im A1-Kundenbereich aktiviert (`http://` → `https://`)
 - [ ] Testanfrage abgeschickt → grüne Meldung erschienen
 - [ ] E-Mail in office@drweiser.at angekommen
 - [ ] „Antworten" geht an die anfragende Person

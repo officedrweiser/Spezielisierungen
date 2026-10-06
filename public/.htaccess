@@ -2,14 +2,19 @@
 # Auf einem Node.js-Hoster wird diese Datei ignoriert – dort übernimmt
 # server/server.js dieselben Aufgaben.
 
+# Keine Ordnerinhalte auflisten, wenn eine Adresse auf einen Ordner zeigt.
+Options -Indexes
+
 # Das Formular sendet an /api/contact – hier auf das PHP-Skript umleiten.
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteRule ^api/contact/?$ /api/contact.php [L]
 </IfModule>
 
-# Zugangsdaten und Vorlagen niemals ausliefern.
-<Files "config.php">
+# Zugangsdaten, Vorlagen und versehentliche Kopien davon niemals ausliefern
+# (z. B. config.php, config.example.php, config.php.txt, config.php.bak,
+# config.php~). Ebenso versteckte Dateien wie .htaccess oder .env.
+<FilesMatch "(^config.*|~$|\.(bak|old|orig|save|swp|tmp|log|md)$|^\.)">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -17,21 +22,21 @@
     Order allow,deny
     Deny from all
   </IfModule>
-</Files>
-
-<Files "config.example.php">
-  <IfModule mod_authz_core.c>
-    Require all denied
-  </IfModule>
-  <IfModule !mod_authz_core.c>
-    Order allow,deny
-    Deny from all
-  </IfModule>
-</Files>
+</FilesMatch>
 
 ErrorDocument 404 /404.html
 
+# Sicherheits-Header (dieselben Werte wie im Node-Server).
+# Google Tag Manager/Analytics (erst nach Cookie-Zustimmung) und die
+# Google-Karte auf der Kontaktseite sind ausdrücklich erlaubt, alles andere
+# nur vom eigenen Server.
 <IfModule mod_headers.c>
-  Header set X-Content-Type-Options "nosniff"
-  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src https://www.google.com https://maps.google.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+  # Browser merken sich für ein Jahr, die Seite nur verschlüsselt aufzurufen
+  # (wird nur bei HTTPS-Aufrufen gesendet).
+  Header always set Strict-Transport-Security "max-age=31536000" "expr=%{HTTPS} == 'on'"
 </IfModule>

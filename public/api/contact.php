@@ -16,12 +16,29 @@ const MAX_PHONE_LENGTH = 40;
 const MAX_MESSAGE_LENGTH = 5000;
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW = 900; // 15 Minuten
+const MAX_BODY_BYTES = 20000;     // wie beim Node-Server (20 KB)
+
+// Nur die Rechtsgebiete aus dem Auswahlfeld des Formulars werden übernommen.
+const ALLOWED_TOPICS = [
+    'Vertragsrecht',
+    'Liegenschaftsrecht / Immobilienrecht',
+    'Erbrecht',
+    'Vermögensverwaltung',
+    'Wirtschaftsrecht / Gesellschaftsgründung',
+    'Familienrecht',
+    'Sonstiges',
+];
 
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     respond(405, ['error' => 'Methode nicht erlaubt.']);
+}
+
+// Anfragen, die ein Browser von einer fremden Website aus abschickt, ablehnen.
+if (is_foreign_origin()) {
+    respond(403, ['error' => 'Anfrage nicht erlaubt.']);
 }
 
 $config = load_config();
@@ -36,6 +53,7 @@ $name    = trim((string) ($input['name'] ?? ''));
 $email   = trim((string) ($input['email'] ?? ''));
 $phone   = trim((string) ($input['phone'] ?? ''));
 $topic   = trim((string) ($input['topic'] ?? ''));
+$topic   = in_array($topic, ALLOWED_TOPICS, true) ? $topic : '';
 $message = trim((string) ($input['message'] ?? ''));
 $privacy = !empty($input['privacy']) && $input['privacy'] !== 'false';
 $honeypot = trim((string) ($input['website'] ?? ''));
@@ -120,9 +138,32 @@ function load_config(): array
     return $config;
 }
 
+function is_foreign_origin(): bool
+{
+    $origin = (string) ($_SERVER['HTTP_ORIGIN'] ?? '');
+    if ($origin === '') {
+        return false;
+    }
+    $originHost = strtolower((string) parse_url($origin, PHP_URL_HOST));
+    $originPort = parse_url($origin, PHP_URL_PORT);
+    if ($originPort !== null && $originPort !== false) {
+        $originHost .= ':' . $originPort;
+    }
+    $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+
+    return $originHost === '' || $originHost !== $host;
+}
+
 function read_input(): array
 {
-    $raw = file_get_contents('php://input');
+    $length = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+    if ($length > MAX_BODY_BYTES) {
+        respond(413, ['error' => 'Ihre Nachricht ist zu lang.']);
+    }
+    $raw = file_get_contents('php://input', false, null, 0, MAX_BODY_BYTES + 1);
+    if (is_string($raw) && strlen($raw) > MAX_BODY_BYTES) {
+        respond(413, ['error' => 'Ihre Nachricht ist zu lang.']);
+    }
     if (is_string($raw) && $raw !== '') {
         $decoded = json_decode($raw, true);
         if (is_array($decoded)) {
@@ -208,7 +249,10 @@ function encode_header(string $value): string
 function encode_address(string $name, string $address): string
 {
     $address = strip_header_breaks($address);
-    $name = strip_header_breaks($name);
+    // Zeichen entfernen, mit denen ein Name im Mailprogramm wie eine
+    // (fremde) E-Mail-Adresse aussehen könnte.
+    $name = str_replace(['<', '>', ',', ';', '@'], ' ', strip_header_breaks($name));
+    $name = trim((string) preg_replace('/\s+/', ' ', $name));
     if ($name === '') {
         return $address;
     }
