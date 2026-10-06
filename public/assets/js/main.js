@@ -152,6 +152,10 @@
 
   /* ---------- Cookie consent banner ---------- */
   var CONSENT_KEY = 'mw_cookie_consent';
+  // Gesetzt, sobald jemand die Cookie-Einstellungen erneut öffnet: bis zu einer
+  // neuen Entscheidung bleibt die Website gesperrt – in allen Tabs, auch im
+  // Tab mit der Datenschutzerklärung, der aus dem Cookie-Fenster geöffnet wird.
+  var REVIEW_KEY = 'mw_cookie_review';
   var banner = document.getElementById('cookie-banner');
   var cookieBackdrop = document.getElementById('cookie-backdrop');
 
@@ -166,8 +170,15 @@
     catch (e) { return null; }
   }
   function setConsent(value) {
-    try { localStorage.setItem(CONSENT_KEY, JSON.stringify(value)); } catch (e) {}
+    try {
+      localStorage.setItem(CONSENT_KEY, JSON.stringify(value));
+      localStorage.removeItem(REVIEW_KEY);
+    } catch (e) {}
     applyConsent(value);
+  }
+  function decisionPending() {
+    try { return !getConsent() || localStorage.getItem(REVIEW_KEY) === '1'; }
+    catch (e) { return !getConsent(); }
   }
   // Solange das Cookie-Fenster offen ist, ist die übrige Seite vollständig
   // gesperrt: nicht anklickbar, nicht per Tastatur (Tab) erreichbar, für
@@ -259,12 +270,12 @@
 
   if (banner) {
     var existingConsent = getConsent();
-    if (!existingConsent) {
-      // Sofort zeigen (keine Verzögerung): solange keine Zustimmung vorliegt,
+    // Bisherige Entscheidung gilt weiter, bis sie geändert wird.
+    if (existingConsent) applyConsent(existingConsent);
+    if (decisionPending()) {
+      // Sofort zeigen (keine Verzögerung): solange keine Entscheidung vorliegt,
       // soll die Website auf jeder Seite von Anfang an gesperrt sein.
       showBanner();
-    } else {
-      applyConsent(existingConsent);
     }
     setToggleStates(existingConsent);
 
@@ -338,6 +349,7 @@
     document.querySelectorAll('[data-open-cookie-settings]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
+        try { localStorage.setItem(REVIEW_KEY, '1'); } catch (err) {}
         collapsePanel();
         setToggleStates(getConsent());
         showBanner();
@@ -347,17 +359,21 @@
     // Seite über „Zurück“/„Vor“ aus dem Browser-Speicher wiederhergestellt:
     // ohne Entscheidung bleibt sie gesperrt.
     window.addEventListener('pageshow', function (e) {
-      if (e.persisted && !getConsent()) showBanner();
+      if (e.persisted && decisionPending()) showBanner();
     });
 
     // Entscheidung in einem anderen Tab getroffen (z. B. im Tab mit der
     // Datenschutzerklärung): auch diesen Tab sofort freigeben.
+    // Umgekehrt: Einstellungen in einem anderen Tab geöffnet -> hier ebenfalls sperren.
     window.addEventListener('storage', function (e) {
-      if (e.key !== CONSENT_KEY) return;
+      if (e.key !== CONSENT_KEY && e.key !== REVIEW_KEY) return;
       var consent = getConsent();
-      if (consent) {
+      setToggleStates(consent);
+      if (decisionPending()) {
+        collapsePanel();
+        showBanner();
+      } else {
         applyConsent(consent);
-        setToggleStates(consent);
         collapsePanel();
         hideBanner();
       }
