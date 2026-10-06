@@ -215,11 +215,7 @@ h3 { font-size: 1.3rem; }
 .hero-media img, .hero-media video {
   width: 100%; height: 100%; object-fit: cover;
 }
-.hero-media::after {
-  content: '';
-  position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(180deg, rgba(15,15,17,0.55) 0%, rgba(15,15,17,0.45) 40%, rgba(15,15,17,0.85) 100%);
-}
+/* Keine Abdunkelung über den Fotos: Sie erscheinen wie im Original. */
 
 /* Hero-Diashow: drei Bilder, die sich per Crossfade abwechseln und wiederholen */
 .hero-slide {
@@ -369,6 +365,19 @@ h3 { font-size: 1.3rem; }
   width: 60%; height: 160%;
   background: radial-gradient(circle, rgba(212,32,39,0.35) 0%, rgba(212,32,39,0) 70%);
 }
+/* Kopfbanner mit Foto (alle Unterseiten): Foto unverändert, ohne roten
+   Schimmer; auf allen Unterseiten exakt gleich hoch, damit beim Wechseln
+   zwischen den Reitern keine Höhenunterschiede entstehen. */
+.page-hero--image {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 600px;
+  padding: 60px 0 0;
+  background: var(--page-hero-image) center / cover no-repeat, var(--color-ink);
+}
+.page-hero--image::after { display: none; }
+.page-hero--image .container { width: 100%; }
 .page-hero .container { position: relative; }
 .page-hero .eyebrow { color: #F2B7B9; }
 .page-hero .eyebrow::before { background: #F2B7B9; }
@@ -591,6 +600,39 @@ h3 { font-size: 1.3rem; }
 .cta-banner h2 { color: var(--color-white); margin-bottom: 8px; }
 .cta-banner p { color: rgba(255,255,255,0.75); margin: 0; }
 .cta-banner-actions { position: relative; z-index: 1; display: flex; gap: 16px; flex-wrap: wrap; }
+
+/* Kontakt-Banner mit Foto (Startseite): Foto rechts in Originalfarben,
+   läuft nach links weich in den dunklen Banner aus; Knöpfe unter dem Text. */
+.cta-banner--photo {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 320px;
+  padding-right: calc(44% + 32px);
+}
+.cta-banner--photo::after { display: none; }
+.cta-banner--photo::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 50%;
+  background: url('/assets/images/hero/cta-handschlag.jpg') center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%);
+          mask-image: linear-gradient(90deg, transparent 0%, #000 38%);
+  pointer-events: none;
+}
+@media (max-width: 900px) {
+  .cta-banner.cta-banner--photo { padding: 200px 36px 40px; min-height: 0; }
+  .cta-banner--photo::before {
+    width: 100%; bottom: auto; height: 190px;
+    -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+            mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+  }
+}
+@media (max-width: 600px) {
+  .cta-banner.cta-banner--photo { padding: 180px 24px 32px; }
+  .cta-banner--photo::before { height: 170px; }
+}
 
 /* ---------- Footer ---------- */
 .site-footer { background: var(--color-ink); color: rgba(255,255,255,0.7); padding: 72px 0 28px; }
@@ -830,9 +872,6 @@ h3 { font-size: 1.3rem; }
     position: relative; inset: auto;
     width: 100%;
     aspect-ratio: 16 / 10;
-  }
-  .hero-media::after {
-    background: linear-gradient(180deg, rgba(15,15,17,0.15) 0%, rgba(15,15,17,0.15) 60%, rgba(15,15,17,0.55) 100%);
   }
   .hero-content {
     position: relative;
