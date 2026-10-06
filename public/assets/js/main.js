@@ -169,15 +169,42 @@
     try { localStorage.setItem(CONSENT_KEY, JSON.stringify(value)); } catch (e) {}
     applyConsent(value);
   }
+  // Solange das Cookie-Fenster offen ist, ist die übrige Seite vollständig
+  // gesperrt: nicht anklickbar, nicht per Tastatur (Tab) erreichbar, für
+  // Vorleseprogramme ausgeblendet und nicht scrollbar (auch auf iPhones).
+  var pageLocked = false;
+  function setPageLocked(locked) {
+    pageLocked = locked;
+    document.documentElement.classList.toggle('cookie-locked', locked);
+    Array.prototype.forEach.call(document.body.children, function (el) {
+      if (el === banner || el === cookieBackdrop || el.tagName === 'SCRIPT') return;
+      if (locked) el.setAttribute('inert', '');
+      else el.removeAttribute('inert');
+    });
+  }
+  // Ersatz für ältere Browser ohne „inert“: Fokus bleibt im Cookie-Fenster.
+  document.addEventListener('focusin', function (e) {
+    if (pageLocked && banner && !banner.contains(e.target)) {
+      banner.focus({ preventScroll: true });
+    }
+  });
   function showBanner() {
     if (banner) banner.classList.add('is-visible');
     if (cookieBackdrop) cookieBackdrop.classList.add('is-visible');
-    document.body.style.overflow = 'hidden';
+    setPageLocked(true);
+    if (banner) {
+      banner.setAttribute('aria-modal', 'true');
+      banner.setAttribute('tabindex', '-1');
+      banner.focus({ preventScroll: true });
+    }
   }
   function hideBanner() {
-    if (banner) banner.classList.remove('is-visible');
+    if (banner) {
+      banner.classList.remove('is-visible');
+      banner.removeAttribute('aria-modal');
+    }
     if (cookieBackdrop) cookieBackdrop.classList.remove('is-visible');
-    document.body.style.overflow = '';
+    setPageLocked(false);
   }
 
   var gaLoaded = false;
@@ -315,6 +342,25 @@
         setToggleStates(getConsent());
         showBanner();
       });
+    });
+
+    // Seite über „Zurück“/„Vor“ aus dem Browser-Speicher wiederhergestellt:
+    // ohne Entscheidung bleibt sie gesperrt.
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted && !getConsent()) showBanner();
+    });
+
+    // Entscheidung in einem anderen Tab getroffen (z. B. im Tab mit der
+    // Datenschutzerklärung): auch diesen Tab sofort freigeben.
+    window.addEventListener('storage', function (e) {
+      if (e.key !== CONSENT_KEY) return;
+      var consent = getConsent();
+      if (consent) {
+        applyConsent(consent);
+        setToggleStates(consent);
+        collapsePanel();
+        hideBanner();
+      }
     });
   }
 

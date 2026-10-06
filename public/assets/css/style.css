@@ -749,6 +749,10 @@ h3 { font-size: 1.3rem; }
   transition: opacity 0.35s var(--ease);
 }
 .cookie-backdrop.is-visible { opacity: 1; pointer-events: auto; }
+/* Seite gesperrt, solange keine Cookie-Entscheidung getroffen ist (auch auf iPhones kein Scrollen) */
+html.cookie-locked, html.cookie-locked body { overflow: hidden; overscroll-behavior: none; }
+.cookie-backdrop.is-visible { touch-action: none; }
+.cookie-banner:focus { outline: none; }
 
 .cookie-banner {
   position: fixed;
