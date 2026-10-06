@@ -298,7 +298,7 @@ h3 { font-size: 1.3rem; }
 .back-to-top {
   position: fixed;
   left: 24px;
-  bottom: 32px;
+  bottom: calc(32px + var(--btt-lift, 0px));
   z-index: 400;
   display: flex;
   flex-direction: column;
@@ -601,38 +601,29 @@ h3 { font-size: 1.3rem; }
 .cta-banner p { color: rgba(255,255,255,0.75); margin: 0; }
 .cta-banner-actions { position: relative; z-index: 1; display: flex; gap: 16px; flex-wrap: wrap; }
 
-/* Kontakt-Banner mit Foto (Startseite): Foto rechts in Originalfarben,
-   läuft nach links weich in den dunklen Banner aus; Knöpfe unter dem Text. */
-.cta-banner--photo {
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  min-height: 320px;
-  padding-right: calc(44% + 32px);
-}
+/* Kontakt-Banner mit Foto (alle Seiten): Aufbau und Größe bleiben exakt wie
+   beim Banner ohne Foto. Das Foto (Originalfarben) liegt nur rechts dahinter
+   und läuft nach links weich in den dunklen Banner aus. */
 .cta-banner--photo::after { display: none; }
 .cta-banner--photo::before {
   content: '';
   position: absolute;
   top: 0; right: 0; bottom: 0;
-  width: 50%;
-  background: url('/assets/images/hero/cta-handschlag.jpg') center / cover no-repeat;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%);
-          mask-image: linear-gradient(90deg, transparent 0%, #000 38%);
+  width: 34%;
+  background: url('/assets/images/hero/cta-handschlag.jpg') 30% center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 55%);
+          mask-image: linear-gradient(90deg, transparent 0%, #000 55%);
   pointer-events: none;
 }
-@media (max-width: 900px) {
-  .cta-banner.cta-banner--photo { padding: 200px 36px 40px; min-height: 0; }
-  .cta-banner--photo::before {
-    width: 100%; bottom: auto; height: 190px;
-    -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
-            mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
-  }
-}
-@media (max-width: 600px) {
-  .cta-banner.cta-banner--photo { padding: 180px 24px 32px; }
-  .cta-banner--photo::before { height: 170px; }
-}
+/* Umrandeter Knopf bleibt lesbar, falls er rechts über dem hellen Foto steht */
+.cta-banner--photo .btn--ghost { background-color: rgba(27, 27, 31, 0.85); }
+.cta-banner--photo .btn--ghost:hover { background-color: rgba(58, 58, 64, 0.9); }
+/* Fotobreite je Bildschirm so, dass der Text nicht über dem hellen Teil liegt */
+@media (max-width: 1200px) { .cta-banner--photo::before { width: 28%; } }
+@media (max-width: 1024px) { .cta-banner--photo::before { width: 18%; } }
+/* Schmale Bildschirme/Handy: Text nimmt fast die ganze Breite ein – ohne den
+   Banner zu vergrößern ist dort kein Platz für das Foto. */
+@media (max-width: 960px) { .cta-banner--photo::before { display: none; } }
 
 /* ---------- Footer ---------- */
 .site-footer { background: var(--color-ink); color: rgba(255,255,255,0.7); padding: 72px 0 28px; }
@@ -864,31 +855,12 @@ h3 { font-size: 1.3rem; }
   .footer-bottom { flex-direction: column; align-items: flex-start; }
 }
 
-/* Mobile: Hero als Bild-Banner oben + Text darunter, damit das komplette
-   Diashow-Bild sichtbar ist (statt nur ein schmaler Mittelausschnitt). */
-@media (max-width: 768px) {
-  .hero { flex-direction: column; min-height: 0; }
-  .hero-media {
-    position: relative; inset: auto;
-    width: 100%;
-    aspect-ratio: 16 / 10;
-  }
-  .hero-content {
-    position: relative;
-    background: var(--color-ink);
-    width: 100%;
-    padding-top: 40px;
-    padding-bottom: 48px;
-  }
-  .hero h1 { text-shadow: none; }
-  .hero .lede { text-shadow: none; }
-  .scroll-hint { display: none; }
-}
-
 @media (max-width: 600px) {
   .section { padding: 64px 0; }
+  .hero-content { padding-top: 100px; }
+  .scroll-hint { bottom: 18px; }
   .cta-banner { padding: 36px 24px; }
   .cookie-banner { width: calc(100% - 24px); padding: 22px; }
-  .back-to-top { left: 14px; bottom: 18px; }
+  .back-to-top { left: 14px; bottom: calc(18px + var(--btt-lift, 0px)); }
   .back-to-top__label { display: none; }
 }

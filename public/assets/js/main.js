@@ -57,13 +57,22 @@
   var header = document.querySelector('.site-header');
   var backToTop = document.getElementById('back-to-top');
 
+  var footer = document.querySelector('.site-footer');
+
   var onWindowScroll = function () {
     var y = window.scrollY;
     if (header) header.classList.toggle('is-scrolled', y > 12);
-    if (backToTop) backToTop.classList.toggle('is-visible', y > window.innerHeight * 0.6);
+    if (backToTop) {
+      backToTop.classList.toggle('is-visible', y > window.innerHeight * 0.6);
+      // Sobald die dunkle Fußzeile ins Bild kommt, wandert „Nach oben“ mit
+      // nach oben und hört vor der Fußzeile auf.
+      var lift = footer ? Math.max(0, window.innerHeight - footer.getBoundingClientRect().top) : 0;
+      backToTop.style.setProperty('--btt-lift', lift + 'px');
+    }
   };
   onWindowScroll();
   window.addEventListener('scroll', onWindowScroll, { passive: true });
+  window.addEventListener('resize', onWindowScroll);
 
   if (backToTop) {
     backToTop.addEventListener('click', function () {
