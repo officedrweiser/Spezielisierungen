@@ -109,12 +109,16 @@ python3 -I $S/inspect_mails.py "$W/mails.txt"
 bash $S/testenv.sh stop "$W"
 ```
 - `php`: Port 8088, URL `http://127.0.0.1:8088/api/contact`. Damit wird `contact.php` mit
-  einem Router getestet, der die Umschreibe-Regel nachahmt.
+  einem Router getestet, der die Umschreibe-Regel nachahmt. Der eingebaute PHP-Server
+  ignoriert die `.htaccess`. `probe_server.sh` zeigt hier deshalb fehlende Header und
+  ausgelieferte Dateien. Das ist kein Befund. Bewerte hier nur das Formular
+  (`form_attacks.sh`, `inspect_mails.py`), Dateischutz und Header nur im Apache-Modus.
 - `apache`: Port 8090. Das ist echter Apache mit der echten `.htaccess`. Absichtlich
   hinterlegt sind `config.php.bak`, `config.php~`, `.env` usw. mit dem Wort „GEHEIM“, und
   Ordnerlisten sind eingeschaltet. So zeigt sich, ob die .htaccess wirklich schützt.
   Antwortet die Startseite mit 500, ist die .htaccess kaputt. Das wäre live ein Totalausfall
-  und hat Vorrang vor allem anderen.
+  und hat Vorrang vor allem anderen. Der Hinweis `Server: Apache/… (Ubuntu)` stammt vom
+  Testserver. Bei A1 antwortet nginx, und per .htaccess lässt sich das ohnehin nicht ändern.
 - `probe_server.sh` meldet `<<< INHALT AUSGELIEFERT` oder `<<< ORDNERLISTE` als echte
   Lücke. Erwartet werden 403/404/405, nie Quelltext.
 - `form_attacks.sh` führt 16 Prüfungen durch. Erwartet wird bei allen `[ok]`. Jede
@@ -157,7 +161,9 @@ bash $S/live_check.sh drweiser.at officedrweiser/Spezielisierungen
 ```
 Geprüft werden: http→https-Weiterleitung, Zertifikat und Ablaufdatum, Header, eine
 Stichprobe geschützter Pfade, welche Version live läuft (alte WordPress-Seite oder dieses
-Repository) und die GitHub-Sichtbarkeit.
+Repository) und die GitHub-Sichtbarkeit. Für HTTPS und GitHub gelten die Entscheidungen
+oben: Solange die neue Seite nicht online ist, kommen sie in den Bericht nur als Erinnerung
+für die Veröffentlichung. Ist die neue Seite live, sind sie echte To-dos.
 
 **Achtung:** Läuft live noch WordPress, betreffen die Header-Befunde die alte Seite und
 nicht das Repository. Trenne das im Bericht klar. Ein `[?]` beim Zertifikat in der Sandbox

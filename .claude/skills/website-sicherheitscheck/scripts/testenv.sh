@@ -61,7 +61,8 @@ PHP
     rm -rf "$(php -r 'echo sys_get_temp_dir();')/drweiser-contact"   # Spam-Bremse zurücksetzen
     (cd "$WORK/php/public" && exec php -S 127.0.0.1:8088 "$WORK/php/router.php" > "$WORK/php.log" 2>&1) &
     echo $! > "$WORK/php.pid"
-    sleep 1; echo "PHP-Testserver: http://127.0.0.1:8088  (Formular: POST /api/contact)";;
+    sleep 1; echo "PHP-Testserver: http://127.0.0.1:8088  (Formular: POST /api/contact)"
+    echo "  Hinweis: php -S ignoriert die .htaccess – Dateischutz und Header nur im Apache-Modus bewerten.";;
   apache)
     if ! command -v apache2 >/dev/null || ! ls /usr/lib/apache2/modules/libphp*.so >/dev/null 2>&1; then
       echo "Installiere Apache + PHP-Modul (einmalig) …"

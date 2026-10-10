@@ -76,7 +76,11 @@ for fn in sorted(glob.glob(os.path.join(sys.argv[1], "*.html"))):
         name = os.path.basename(fn)
         # Entscheidung des Auftraggebers (10/2026): Google-Karte auf der Kontaktseite ohne Klick
         if name == "kontakt.html" and tag == "iframe" and re.match(r"https://(www|maps)\.google\.com/maps", u.group(1)):
-            print(f"[i] {name}: Google-Karte lädt beim Aufruf – bewusst so entschieden; muss in der Datenschutzerklärung stehen")
+            ds = os.path.join(sys.argv[1], "datenschutz.html")
+            listed = os.path.exists(ds) and "Google Maps" in open(ds, encoding="utf-8").read()
+            print(f"[i] {name}: Google-Karte lädt beim Aufruf – bewusst so entschieden")
+            print("[ok] Google Maps steht in der Datenschutzerklärung" if listed
+                  else "[!] Google Maps fehlt in der Datenschutzerklärung (datenschutz.html) – ergänzen")
         else:
             print(f"[!] {name}: <{tag}> lädt beim Aufruf {u.group(1)[:90]}")
 INNER
