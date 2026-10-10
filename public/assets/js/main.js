@@ -183,28 +183,75 @@
   // Solange das Cookie-Fenster offen ist, ist die übrige Seite vollständig
   // gesperrt: nicht anklickbar, nicht per Tastatur (Tab) erreichbar, für
   // Vorleseprogramme ausgeblendet und nicht scrollbar (auch auf iPhones).
+  // Ausnahme Datenschutzerklärung (<main data-cookie-readable>): Der Text darf
+  // vor der Entscheidung gelesen und gescrollt werden, das Cookie-Fenster sitzt
+  // dann unten. Menü, Fußzeile und Links auf andere Seiten bleiben gesperrt.
+  var readableMain = document.querySelector('main[data-cookie-readable]');
   var pageLocked = false;
+  var readingMode = false;
+  function updateReadingSpace() {
+    var space = readingMode && banner ? banner.offsetHeight + 32 : 0;
+    document.documentElement.style.setProperty('--cookie-reading-space', space + 'px');
+  }
   function setPageLocked(locked) {
     pageLocked = locked;
-    document.documentElement.classList.toggle('cookie-locked', locked);
+    readingMode = locked && !!readableMain;
+    document.documentElement.classList.toggle('cookie-locked', locked && !readingMode);
+    document.documentElement.classList.toggle('cookie-reading', readingMode);
     Array.prototype.forEach.call(document.body.children, function (el) {
       if (el === banner || el === cookieBackdrop || el.tagName === 'SCRIPT') return;
-      if (locked) el.setAttribute('inert', '');
+      if (locked && !(readingMode && el === readableMain)) el.setAttribute('inert', '');
       else el.removeAttribute('inert');
     });
+    if (readableMain) {
+      readableMain.querySelectorAll('a[href]').forEach(function (a) {
+        if (a.origin !== location.origin || a.pathname === location.pathname) return;
+        if (readingMode) a.setAttribute('inert', '');
+        else a.removeAttribute('inert');
+      });
+    }
+    updateReadingSpace();
+  }
+  function isOpenPart(el) {
+    return !!el && readingMode && readableMain.contains(el) && !el.closest('[inert]');
+  }
+  function drawAttention() {
+    if (!banner) return;
+    banner.classList.remove('is-attention');
+    void banner.offsetWidth;
+    banner.classList.add('is-attention');
+    banner.focus({ preventScroll: true });
   }
   // Ersatz für ältere Browser ohne „inert“: Fokus bleibt im Cookie-Fenster.
   document.addEventListener('focusin', function (e) {
-    if (pageLocked && banner && !banner.contains(e.target)) {
+    if (pageLocked && banner && !banner.contains(e.target) && !isOpenPart(e.target)) {
       banner.focus({ preventScroll: true });
     }
   });
+  // Lesemodus: Klicks auf gesperrte Teile bewirken nichts, das Cookie-Fenster
+  // macht kurz auf sich aufmerksam.
+  document.addEventListener('click', function (e) {
+    if (!readingMode || !banner || banner.contains(e.target) || isOpenPart(e.target)) return;
+    e.preventDefault();
+    drawAttention();
+  }, true);
+  document.addEventListener('pointerdown', function (e) {
+    if (!readingMode || !banner || banner.contains(e.target)) return;
+    var hitsLocked = Array.prototype.some.call(document.querySelectorAll('body > [inert], main [inert]'), function (el) {
+      var r = el.getBoundingClientRect();
+      return r.width > 0 && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    });
+    if (hitsLocked) drawAttention();
+  });
+  window.addEventListener('resize', updateReadingSpace);
+  if (window.ResizeObserver && banner) new ResizeObserver(updateReadingSpace).observe(banner);
   function showBanner() {
     if (banner) banner.classList.add('is-visible');
-    if (cookieBackdrop) cookieBackdrop.classList.add('is-visible');
     setPageLocked(true);
+    if (cookieBackdrop) cookieBackdrop.classList.toggle('is-visible', !readingMode);
     if (banner) {
-      banner.setAttribute('aria-modal', 'true');
+      if (readingMode) banner.removeAttribute('aria-modal');
+      else banner.setAttribute('aria-modal', 'true');
       banner.setAttribute('tabindex', '-1');
       banner.focus({ preventScroll: true });
     }

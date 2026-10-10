@@ -54,6 +54,24 @@ Techniker: Er arbeitet unter Windows/PowerShell und startet die Seite lokal mit
 Ändert sich die Struktur (neue Seiten, neue Dienste), passe die Listen in den Skripten an.
 Betroffen sind `PAGES` in `browser_check.js` und die Pfadliste in `probe_server.sh`.
 
+## Entscheidungen des Auftraggebers (Stand 10/2026)
+
+Diese Punkte sind entschieden. Schlage sie nicht erneut als To-do vor, sondern prüfe nur, ob
+der vereinbarte Zustand noch stimmt:
+
+- **Google-Karte auf der Kontaktseite lädt ohne Klick.** Eine Zwei-Klick-Lösung ist nicht
+  gewünscht. Die Skripte melden die Karte deshalb nur als `[i]`. Andere Dienste von Dritten
+  vor der Zustimmung bleiben ein Befund. Offen bleibt nur: Die Karte muss in der
+  Datenschutzerklärung stehen.
+- **Die Datenschutzerklärung ist vor der Cookie-Entscheidung lesbar.** Das ist der Lesemodus:
+  `<main data-cookie-readable>` in `datenschutz.html`, die Klasse `html.cookie-reading`, und
+  das Fenster sitzt unten. Text, Scrollen und externe Links sind frei. Kopfzeile, Fußzeile,
+  Menü und Links auf andere Seiten bleiben gesperrt. Alle anderen Seiten sind voll gesperrt.
+- **GitHub wird nach der Veröffentlichung privat gestellt.** Solange es öffentlich ist,
+  steht das im Bericht nur als Erinnerung.
+- **HTTPS wird im A1-Kundencenter erzwungen.** Nach der Umstellung prüfst du das mit
+  `live_check.sh`.
+
 ## Ablauf
 
 Alle Befehle laufen aus dem Projektordner. Als Arbeitsordner dient ein Unterordner des
@@ -124,9 +142,12 @@ bash $S/testenv.sh stop "$W"
   Co.). Jede solche Verbindung überträgt die IP-Adresse und ist ohne Einwilligung
   DSGVO-relevant.
 - Teil 2 prüft die Cookie-Sperre auf Computer und Handy. Getestet werden: Erstbesuch,
-  Tab-Taste, Scrollen, Datenschutz-Link im neuen Tab, Zurück-Taste (bfcache), Entscheidung
-  in einem Tab und erneut geöffnete Einstellungen. Jeder Weg, der ohne Entscheidung auf die
-  Seite führt, ist ein Befund. Der Auftraggeber hat genau das ausdrücklich verlangt.
+  Tab-Taste, Scrollen, Zurück-Taste (bfcache), Entscheidung in einem Tab und erneut
+  geöffnete Einstellungen. Jeder Weg, der ohne Entscheidung auf die Website führt, ist ein
+  Befund. Der Auftraggeber hat genau das ausdrücklich verlangt.
+- Für den Datenschutz-Link aus dem Fenster gilt der Lesemodus. Der Text muss lesbar und
+  scrollbar sein, und sein Ende darf nicht vom Fenster verdeckt werden. Ein Mausklick auf
+  das Menü darf nicht wegführen, und die Tab-Taste darf keine gesperrten Teile erreichen.
 - Teil 3 prüft nach der Zustimmung: Konsolen- und CSP-Fehler, ob die Schriften vom eigenen
   Server kommen, das Formular über die Oberfläche, das Handy-Menü und horizontales Scrollen.
 
@@ -185,6 +206,9 @@ Chat. Die Struktur steht in `references/bericht-vorlage.md`.
   ob „Content Security Policy“ in der Meldung steht.
 - **Fokus auf `BODY`** bei der Tab-Prüfung bedeutet: Der Fokus ist in der Browser-Leiste,
   nicht auf der Seite. Das ist kein Leck.
+- **Weiches Scrollen:** Die Seite hat `scroll-behavior: smooth`. Ein `scrollTo()` im Test
+  läuft noch, während du schon scrollst, und setzt danach wieder auf 0 zurück. Das sieht
+  dann aus wie „lässt sich nicht scrollen“. In Tests deshalb `behavior: 'instant'` verwenden.
 - **Spam-Zähler:** Wiederholte Läufe ohne Neustart zählen weiter. PHP speichert den Zähler
   unter `sys_get_temp_dir()/drweiser-contact`, und `testenv.sh start php` leert ihn.
 - **Apache-Testordner:** Er liegt unter `/var/www/website-sicherheitscheck-test`, weil

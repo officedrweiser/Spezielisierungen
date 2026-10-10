@@ -19,7 +19,7 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
   # Passwort-artige Zuweisungen, die nicht offensichtlich Platzhalter sind
   hits=$(git log --all -p 2>/dev/null | grep -E "^\+" \
     | grep -i -E "(smtp_pass|SMTP_PASS|password|passwort|api[_-]?key|secret|token)['\"]?\s*(=>|=|:)\s*['\"]?[^'\"[:space:],;]{6,}" \
-    | grep -v -i -E "IhrPasswort|example|beispiel|xxxx|changeme|placeholder|process\.env|\\\$config|getenv|<|\(\)" | sort -u | head -20)
+    | grep -v -i -E "IhrPasswort|example|beispiel|xxxx|changeme|placeholder|GEHEIM|process\.env|\\\$config|getenv|<|\(\)" | sort -u | head -20)
   if [ -n "$hits" ]; then echo "[!] Mögliche echte Zugangsdaten im Verlauf (prüfen!):"; echo "$hits" | cut -c1-160 | sed 's/^/    /'
   else echo "[ok] Keine Passwort-/Schlüssel-Zuweisungen mit echten Werten gefunden"; fi
 else
@@ -71,8 +71,14 @@ for fn in sorted(glob.glob(os.path.join(sys.argv[1], "*.html"))):
         if tag == "link" and not re.search(r'rel="(stylesheet|preload|preconnect|icon)"', attrs):
             continue
         u = re.search(r'(?:src|href)="(https?://[^"]+)"', attrs)
-        if u:
-            print(f"[!] {os.path.basename(fn)}: <{tag}> lädt beim Aufruf {u.group(1)[:90]}")
+        if not u:
+            continue
+        name = os.path.basename(fn)
+        # Entscheidung des Auftraggebers (10/2026): Google-Karte auf der Kontaktseite ohne Klick
+        if name == "kontakt.html" and tag == "iframe" and re.match(r"https://(www|maps)\.google\.com/maps", u.group(1)):
+            print(f"[i] {name}: Google-Karte lädt beim Aufruf – bewusst so entschieden; muss in der Datenschutzerklärung stehen")
+        else:
+            print(f"[!] {name}: <{tag}> lädt beim Aufruf {u.group(1)[:90]}")
 INNER
 
 section "5. Inline-Code (relevant für Content-Security-Policy)"

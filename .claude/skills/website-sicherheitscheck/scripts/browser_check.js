@@ -8,6 +8,11 @@ const BASE = (process.argv[2] || 'http://localhost:3100').replace(/\/$/, '');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium';
 const CONSENT_KEY = process.env.CONSENT_KEY || 'mw_cookie_consent';
 const PAGES = ['/', '/ueber-uns.html', '/leistungen.html', '/kontakt.html', '/impressum.html', '/datenschutz.html'];
+// Entscheidung des Auftraggebers (10/2026): Die Google-Karte auf der Kontaktseite lädt
+// ohne Klick. Was die Karte in ihrem eigenen Frame lädt, wird deshalb nur als Hinweis
+// gemeldet. Alles andere von Dritten bleibt ein Befund.
+const ACCEPTED_MAP_PAGES = ['/kontakt.html'];
+const MAP_HOSTS = /(^|\.)(google\.com|google\.at|gstatic\.com|googleapis\.com|ggpht\.com|googleusercontent\.com)$/;
 let findings = 0;
 const ok = (t) => console.log('  [ok] ' + t);
 const bad = (t) => { findings++; console.log('  [!] ' + t); };
@@ -21,14 +26,66 @@ const lockState = (pg) => pg.evaluate(() => {
   if (link) { const r = link.getBoundingClientRect(); const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); clickable = !!top && (top === link || link.contains(top)); }
   return { banner: !!b && b.classList.contains('is-visible'), inert: !!main && main.hasAttribute('inert'), linkClickable: clickable, scrollY: Math.round(scrollY) };
 });
-async function tabReachesPage(pg, presses = 20) {
+async function tabReachesPage(pg, presses = 20, allowMain = false) {
   for (let i = 0; i < presses; i++) {
     await pg.keyboard.press('Tab');
-    // BODY = Fokus ist in der Browser-Adresszeile, kein Seitenelement -> unkritisch
-    const leak = await pg.evaluate(() => { const a = document.activeElement; return a && a !== document.body && !a.closest('#cookie-banner') ? (a.textContent || a.tagName).trim().slice(0, 30) : null; });
+    // BODY = Fokus ist in der Browser-Adresszeile, kein Seitenelement -> unkritisch.
+    // allowMain: Lesemodus der Datenschutzerklärung – Elemente im Text dürfen den Fokus
+    // bekommen, aber keine Links auf andere Seiten dieser Website.
+    const leak = await pg.evaluate((allowMain) => {
+      const a = document.activeElement;
+      if (!a || a === document.body || a.closest('#cookie-banner')) return null;
+      if (allowMain && a.closest('main[data-cookie-readable]')) {
+        const internal = a.tagName === 'A' && a.origin === location.origin && a.pathname !== location.pathname;
+        if (!internal) return null;
+      }
+      return (a.textContent || a.tagName).trim().slice(0, 30);
+    }, allowMain);
     if (leak) return leak;
   }
   return null;
+}
+// Datenschutzerklärung vor der Entscheidung: Text lesbar und scrollbar, aber
+// Menü/Fußzeile/Links auf andere Seiten gesperrt und Cookie-Fenster sichtbar.
+async function assertReadableButLocked(pg, label) {
+  const s = await pg.evaluate(() => {
+    const b = document.getElementById('cookie-banner');
+    const main = document.querySelector('main');
+    const header = document.querySelector('header');
+    return { banner: !!b && b.classList.contains('is-visible'), readable: !!main && main.hasAttribute('data-cookie-readable'),
+      mainInert: !!main && main.hasAttribute('inert'), headerInert: !!header && header.hasAttribute('inert') };
+  });
+  if (!s.readable) return assertLocked(pg, label);
+  let problems = 0; const fail = (t) => { problems++; bad(`${label}: ${t}`); };
+  if (!s.banner) fail('Cookie-Fenster NICHT sichtbar');
+  if (s.mainInert) fail('Text der Datenschutzerklärung gesperrt (soll lesbar sein)');
+  if (!s.headerInert) fail('Kopfzeile/Menü nicht gesperrt');
+  // Ein Link in der Kopfzeile auf eine andere Seite: echter Mausklick darf nicht wegführen
+  const target = await pg.evaluate(() => {
+    const a = [...document.querySelectorAll('header a[href], footer a[href]')].find(x => x.offsetParent && x.pathname !== location.pathname && x.getBoundingClientRect().top >= 0 && x.getBoundingClientRect().bottom <= innerHeight);
+    if (!a) return null; const r = a.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, text: a.textContent.trim() };
+  });
+  const before = pg.url();
+  if (target) { await pg.mouse.click(target.x, target.y); await pg.waitForTimeout(700); }
+  if (pg.url() !== before) { fail(`Klick auf „${target.text}“ führt weg (${pg.url()})`); await pg.goBack(); }
+  const leak = await tabReachesPage(pg, 30, true);
+  if (leak) fail(`Tabulator-Taste erreicht gesperrtes Element „${leak}“`);
+  // Die Seite scrollt „weich“ (scroll-behavior: smooth) – im Test sofort springen
+  await pg.evaluate(() => scrollTo({ top: 0, behavior: 'instant' })); await pg.waitForTimeout(200); await pg.mouse.move(100, 300);
+  await pg.mouse.wheel(0, 1500); await pg.waitForTimeout(400);
+  const y = (await lockState(pg)).scrollY;
+  if (y === 0) fail('Text lässt sich nicht scrollen');
+  // Letzter Absatz muss oberhalb des Cookie-Fensters lesbar werden
+  const lastVisible = await pg.evaluate(async () => {
+    const p = [...document.querySelectorAll('main p')].pop(); const b = document.getElementById('cookie-banner');
+    if (!p || !b) return true;
+    const need = p.getBoundingClientRect().bottom - (b.getBoundingClientRect().top - 8);
+    scrollBy({ top: need, behavior: 'instant' }); await new Promise(r => setTimeout(r, 300));
+    const r = p.getBoundingClientRect(); const el = document.elementFromPoint(r.left + 10, r.bottom - 4);
+    return !!el && p.contains(el);
+  });
+  if (!lastVisible) fail('Ende der Datenschutzerklärung bleibt vom Cookie-Fenster verdeckt');
+  if (!problems) ok(`${label}: Text lesbar und scrollbar, Menü/Links gesperrt, Fenster sichtbar`);
 }
 async function assertLocked(pg, label) {
   const s = await lockState(pg);
@@ -48,10 +105,17 @@ async function assertLocked(pg, label) {
 
   console.log('== 1. Datenübertragung an Dritte OHNE Zustimmung');
   for (const path of PAGES) {
-    const ctx = await browser.newContext(); const pg = await ctx.newPage(); const hosts = new Set();
-    pg.on('request', r => { const h = new URL(r.url()).host; if (!r.url().startsWith(BASE)) hosts.add(h); });
+    const ctx = await browser.newContext(); const pg = await ctx.newPage(); const hosts = new Set(); const accepted = new Set();
+    pg.on('request', r => {
+      if (r.url().startsWith(BASE) || r.url().startsWith('data:')) return;
+      const h = new URL(r.url()).host;
+      // Nur was die eingebettete Karte selbst lädt (eigener Frame), nicht die Seite
+      const fromMap = ACCEPTED_MAP_PAGES.includes(path) && r.frame() !== pg.mainFrame() && MAP_HOSTS.test(h);
+      (fromMap ? accepted : hosts).add(h);
+    });
     try { await pg.goto(BASE + path, { waitUntil: 'networkidle', timeout: 20000 }); await pg.waitForTimeout(800); } catch (e) { info(`${path}: ${e.message.slice(0, 80)}`); }
-    hosts.size ? bad(`${path}: kontaktiert ohne Zustimmung ${[...hosts].join(', ')}`) : ok(`${path}: nur eigener Server`);
+    hosts.size ? bad(`${path}: kontaktiert ohne Zustimmung ${[...hosts].join(', ')}`) : ok(`${path}: nur eigener Server${accepted.size ? ' (plus Google-Karte, siehe unten)' : ''}`);
+    if (accepted.size) info(`${path}: Google-Karte lädt sofort (${[...accepted].join(', ')}) – vom Auftraggeber so entschieden (10/2026); muss in der Datenschutzerklärung stehen`);
     await ctx.close();
   }
 
@@ -65,7 +129,7 @@ async function assertLocked(pg, label) {
       const [t] = await Promise.all([ctx.waitForEvent('page', { timeout: 5000 }).catch(() => null), privacyLink.click()]);
       const tabPg = t || p;
       await tabPg.waitForLoadState('networkidle'); await tabPg.waitForTimeout(300);
-      await assertLocked(tabPg, `${tag} – Datenschutz-Link aus dem Fenster${t ? ' (neuer Tab)' : ' (selber Tab)'}`);
+      await assertReadableButLocked(tabPg, `${tag} – Datenschutz-Link aus dem Fenster${t ? ' (neuer Tab)' : ' (selber Tab)'}`);
       await tabPg.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
       if (!(await lockState(tabPg)).banner) bad(`${tag}: nach „Zurück“ (Seite aus Speicher) frei`); else ok(`${tag}: „Zurück“ (Seite aus Speicher) bleibt gesperrt`);
       // Entscheidung im zweiten Tab -> erster Tab frei?

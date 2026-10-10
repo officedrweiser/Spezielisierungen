@@ -48,7 +48,8 @@ Bericht ohne Rückfrage versteht und weitergeben kann.
 2. …
 
 ## Zu entscheiden
-- <Frage mit Empfehlung, z. B. „Google-Karte erst nach Klick laden? Empfehlung: ja, weil …“>
+- <Frage mit Empfehlung, z. B. „Neues Video erst nach Klick laden? Empfehlung: ja, weil …“>
+- Bereits getroffene Entscheidungen (siehe SKILL.md) hier nicht erneut aufwerfen.
 
 ## In Ordnung (geprüft)
 - <kurze Liste, damit sichtbar ist, was alles gut ist>
@@ -62,7 +63,7 @@ Bericht ohne Rückfrage versteht und weitergeben kann.
 | Stufe | Wann | Beispiele |
 |---|---|---|
 | **dringend** | Daten oder Postfach sind jetzt angreifbar | Passwort im öffentlichen Repository, `config.php` abrufbar, Formular als Spam-Schleuder nutzbar, Zertifikat abgelaufen |
-| **bald** | Schwäche oder Datenschutz-Risiko, aber kein offenes Tor | keine HTTPS-Weiterleitung, Google-Karte ohne Einwilligung, Repository öffentlich ohne Geheimnisse, WordPress verrät Benutzernamen |
+| **bald** | Schwäche oder Datenschutz-Risiko, aber kein offenes Tor | keine HTTPS-Weiterleitung, neuer Drittdienst lädt ohne Einwilligung, genutzter Dienst fehlt in der Datenschutzerklärung, WordPress verrät Benutzernamen |
 | **bei Gelegenheit** | Härtung, gute Praxis | `Server`-Header verrät Software, HSTS-Feinheiten, regelmäßige Wiederholung |
 
 ## Beispielformulierungen
@@ -70,10 +71,9 @@ Bericht ohne Rückfrage versteht und weitergeben kann.
 - **HTTPS:** „Wer `http://drweiser.at` eintippt, landet auf einer unverschlüsselten Seite. Im
   Café-WLAN könnte jemand mitlesen, was in das Formular getippt wird. Das lässt sich mit einem
   Häkchen im A1-Kundencenter abstellen.“
-- **Google Maps:** „Die Karte auf der Kontaktseite lädt sofort beim Öffnen der Seite. Google
-  erfährt dadurch die IP-Adresse jedes Besuchers, noch bevor dieser im Cookie-Fenster
-  entschieden hat. Die übliche Lösung: Statt der Karte steht zuerst ein Bild mit dem Knopf
-  ‚Karte laden‘.“
+- **Datenschutzerklärung unvollständig:** „Die Google-Karte auf der Kontaktseite lädt sofort
+  und überträgt dabei die IP-Adresse an Google. So ist es gewollt. Die Datenschutzerklärung
+  erwähnt die Karte aber noch nicht. Ein Absatz dazu sollte ergänzt werden.“
 - **Öffentliches Repository:** „Der gesamte Quelltext der Website ist auf GitHub für jeden
   lesbar. Passwörter liegen dort nicht. Trotzdem erleichtert das Angreifern die Suche nach
   Schwachstellen.“

@@ -201,17 +201,27 @@ besonders peinlich.
 `browser_check.js`, Teile 1–2.
 
 **Soll:**
-- **Vor** der Entscheidung im Cookie-Banner keine einzige Anfrage an fremde Server:
+- **Vor** der Entscheidung im Cookie-Banner keine Anfrage an fremde Server:
   - Schriften sind selbst gehostet (`/assets/fonts`, `fonts.css`).
   - GA/GTM lädt erst nach Zustimmung.
-  - Externe Einbettungen wie Google Maps stehen hinter einer Zwei-Klick-Lösung („Karte
-    laden“) oder bekommen eine eigene Einwilligung.
-- Cookie-Sperre: Solange keine Entscheidung gefallen ist, gibt es keinen Weg auf die Seite,
-  weder per Maus, Tab-Taste, Scrollen, Datenschutz-Link (auch nicht im neuen Tab),
-  Zurück-Taste, mehrere Tabs noch erneut geöffnete Einstellungen.
+  - Ausnahme nach Entscheidung des Auftraggebers (10/2026): Die Google-Karte auf
+    `kontakt.html` lädt ohne Klick. Sie muss dafür in der Datenschutzerklärung stehen.
+  - Jede **neue** Einbettung (Video, weitere Karte, Widget) wird wieder als Befund gemeldet.
+    Biete dafür eine Zwei-Klick-Lösung an und frag den Auftraggeber.
+- Cookie-Sperre: Solange keine Entscheidung gefallen ist, gibt es keinen Weg auf die Website,
+  weder per Maus, Tab-Taste, Scrollen, Zurück-Taste, mehrere Tabs noch erneut geöffnete
+  Einstellungen.
   - Umsetzung in `main.js`: `inert` auf allen Seitenteilen, Klasse `html.cookie-locked`,
     Fokus-Falle, `pageshow` (bfcache), `storage`-Ereignis über Tabs hinweg und das Flag
     `mw_cookie_review` für erneut geöffnete Einstellungen.
+- Lesemodus der Datenschutzerklärung (vom Auftraggeber gewünscht, 10/2026):
+  - Auf `datenschutz.html` (`<main data-cookie-readable>`) sind Text, Scrollen und externe
+    Links frei. Das Cookie-Fenster sitzt unten, und `body` erhält Abstand nach unten, damit
+    das Textende lesbar wird.
+  - Kopfzeile, Fußzeile, Menü und Links auf andere Seiten bleiben gesperrt. Dafür sorgen
+    `inert`, eine Klick-Sperre als Rückfallebene für alte Browser und ein kurzes
+    Aufleuchten des Fensters bei Klicks auf gesperrte Teile.
+  - Der Lesemodus darf auf keine andere Seite übergreifen.
 - „Alle ablehnen“ ist gleichwertig sichtbar und schaltet die Seite **genauso** frei. Eine
   Cookie-Wall, bei der man nur mit Zustimmung weiterkommt, wäre unzulässig.
 - Die Datenschutzerklärung nennt alle tatsächlich genutzten Dienste: Hosting (A1),
@@ -224,9 +234,9 @@ besonders peinlich.
   Lass jeden neuen Link im Banner durch `browser_check.js` laufen.
 - `localStorage` ist gesperrt (private Fenster): Der Banner muss trotzdem erscheinen und
   sperren.
-- Ob die Datenschutzerklärung schon **vor** der Entscheidung lesbar sein soll, ist eine
-  rechtliche Abwägung. Die Transparenz spricht dafür. Frag den Auftraggeber und entscheide
-  nicht selbst.
+- Ein neuer Link im Text der Datenschutzerklärung auf eine andere Seite der Website wird im
+  Lesemodus automatisch gesperrt. Prüfe trotzdem mit `browser_check.js`, dass er nicht
+  wegführt.
 
 ## H. Code im Browser
 
