@@ -53,7 +53,7 @@ async function sendContactMail({ name, email, phone, topic, message }) {
     from: `"Website-Kontaktformular" <${SENDER}>`,
     to: RECIPIENT,
     replyTo: email,
-    subject: `Neue Kontaktanfrage von der Website${topic ? ' – ' + topic : ''}`,
+    subject: `Neue Kontaktanfrage von der Website${topic ? ': ' + topic : ''}`,
     text: [
       `Name: ${name}`,
       `E-Mail: ${email}`,

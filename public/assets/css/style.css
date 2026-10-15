@@ -136,12 +136,21 @@ h3 { font-size: 1.3rem; }
 }
 .site-header .container { display: flex; align-items: center; justify-content: space-between; }
 .site-header.is-scrolled,
-.site-header.is-solid {
+.site-header.is-solid { padding: 10px 0; }
+/* Milchglas-Hintergrund als eigene Ebene: direkt am Header würde der Unschärfe-Filter
+   das Handy-Menü (position: fixed) auf die Höhe der Kopfleiste beschränken. */
+.site-header::before {
+  content: '';
+  position: absolute; inset: 0; z-index: -1;
   background: rgba(233, 245, 255, 0.94);
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
   box-shadow: 0 2px 24px rgba(27,27,31,0.08);
-  padding: 10px 0;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
 }
+.site-header.is-scrolled::before,
+.site-header.is-solid::before { opacity: 1; }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-mark { display: inline-flex; align-items: center; }
 .brand-mark img { height: 40px; width: auto; }
@@ -170,6 +179,8 @@ h3 { font-size: 1.3rem; }
   transition: right 0.25s var(--ease);
 }
 .main-nav a:hover::after, .main-nav a.is-active::after { right: 0; }
+/* Knopf „Termin vereinbaren“: kein roter Unterstrich */
+.main-nav > .btn::after { display: none; }
 
 .nav-toggle {
   display: none;
@@ -307,6 +318,7 @@ h3 { font-size: 1.3rem; }
   transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s var(--ease);
 }
 .back-to-top.is-visible { opacity: 1; visibility: visible; transform: translateY(0); }
+html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 .back-to-top__label {
   font-size: 0.66rem;
   font-weight: 600;
@@ -626,21 +638,22 @@ h3 { font-size: 1.3rem; }
    Seite unterschiedlich umbricht, sorgt eine gemeinsame Mindesthöhe für
    gleich große Banner. */
 .cta-banner--photo { flex-direction: column; align-items: flex-start; justify-content: flex-start; }
-/* Werte mit den selbst gehosteten Schriften (Inter/Playfair) je Breite gemessen */
+/* Werte mit den selbst gehosteten Schriften (Inter/Playfair) je Breite gemessen;
+   bis 600 px inklusive Handschlag-Streifen unter den Knöpfen */
 @media (max-width: 994px) { .cta-banner--photo { min-height: 294px; } }
 @media (max-width: 913px) { .cta-banner--photo { min-height: 291px; } }
 @media (max-width: 698px) { .cta-banner--photo { min-height: 323px; } }
-@media (max-width: 600px) { .cta-banner--photo { min-height: 283px; } }
-@media (max-width: 527px) { .cta-banner--photo { min-height: 308px; } }
-@media (max-width: 516px) { .cta-banner--photo { min-height: 380px; } }
-@media (max-width: 388px) { .cta-banner--photo { min-height: 406px; } }
-@media (max-width: 379px) { .cta-banner--photo { min-height: 437px; } }
-@media (max-width: 351px) { .cta-banner--photo { min-height: 443px; } }
+@media (max-width: 600px) { .cta-banner--photo { min-height: 443px; } }
+@media (max-width: 527px) { .cta-banner--photo { min-height: 468px; } }
+@media (max-width: 516px) { .cta-banner--photo { min-height: 540px; } }
+@media (max-width: 388px) { .cta-banner--photo { min-height: 566px; } }
+@media (max-width: 379px) { .cta-banner--photo { min-height: 597px; } }
+@media (max-width: 351px) { .cta-banner--photo { min-height: 603px; } }
 /* Fotobreite je Bildschirm so, dass der Text nicht über dem hellen Teil liegt */
 @media (max-width: 1200px) { .cta-banner--photo::before { width: 28%; } }
 @media (max-width: 1024px) { .cta-banner--photo::before { width: 18%; } }
-/* Schmale Bildschirme/Handy: Text nimmt fast die ganze Breite ein – ohne den
-   Banner zu vergrößern ist dort kein Platz für das Foto. */
+/* Tablet/schmale Fenster: Text nimmt fast die ganze Breite ein, daher ohne Foto.
+   Am Handy (bis 600 px) steht es als Streifen unter den Knöpfen (siehe unten). */
 @media (max-width: 960px) { .cta-banner--photo::before { display: none; } }
 
 /* ---------- Footer ---------- */
@@ -864,7 +877,7 @@ html.cookie-reading .back-to-top { display: none; }
 
 @media (max-width: 860px) {
   .main-nav { position: fixed; top: 0; right: 0; bottom: 0; width: min(340px, 82vw);
-    background: var(--color-white); box-shadow: -20px 0 60px rgba(0,0,0,0.15);
+    background: var(--color-paper); box-shadow: -20px 0 60px rgba(0,0,0,0.15);
     flex-direction: column; align-items: flex-start; justify-content: flex-start;
     padding: 110px 32px 40px; gap: 20px;
     transform: translateX(100%); transition: transform 0.35s var(--ease);
@@ -897,6 +910,27 @@ html.cookie-reading .back-to-top { display: none; }
   .cta-banner { padding: 36px 24px; }
   .cookie-banner { width: calc(100% - 24px); padding: 22px; }
   html.cookie-reading .cookie-banner { bottom: 12px; }
-  .back-to-top { left: 14px; bottom: calc(18px + var(--btt-lift, 0px)); }
-  .back-to-top__label { display: none; }
+  /* Handy: Pfeil im Kreis statt rotem Strich */
+  .back-to-top { left: 14px; bottom: calc(18px + var(--btt-lift, 0px)); padding: 0; }
+  .back-to-top__label, .back-to-top__line { display: none; }
+  .back-to-top::before {
+    content: '';
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--color-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D42027' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5M5.5 11.5 12 5l6.5 6.5'/%3E%3C/svg%3E") center / 20px no-repeat;
+    border: 1px solid var(--color-line);
+    box-shadow: 0 6px 18px rgba(27,27,31,0.16);
+  }
+
+  /* Handy: Handschlag als Streifen unter den Knöpfen (Foto nur zugeschnitten,
+     läuft nach oben weich in den dunklen Banner aus) */
+  .cta-banner.cta-banner--photo { padding-bottom: 196px; }
+  .cta-banner--photo::before {
+    display: block;
+    top: auto; left: 0; right: 0; bottom: 0;
+    width: auto; height: 190px;
+    background-position: 45% 42%;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 45%);
+            mask-image: linear-gradient(180deg, transparent 0%, #000 45%);
+  }
 }

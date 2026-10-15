@@ -77,6 +77,9 @@
   onWindowScroll();
   window.addEventListener('scroll', onWindowScroll, { passive: true });
   window.addEventListener('resize', onWindowScroll);
+  // Nachladende Bilder verschieben die Fußzeile ohne Scrollen: dann neu ausrichten.
+  if (window.ResizeObserver) new ResizeObserver(onWindowScroll).observe(document.body);
+  window.addEventListener('load', onWindowScroll);
 
   if (backToTop) {
     backToTop.addEventListener('click', function () {
@@ -93,6 +96,7 @@
     if (!toggle || !nav) return;
     toggle.classList.remove('is-open');
     nav.classList.remove('is-open');
+    document.documentElement.classList.remove('nav-open');
     if (scrim) scrim.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
@@ -102,6 +106,7 @@
     toggle.addEventListener('click', function () {
       var open = nav.classList.toggle('is-open');
       toggle.classList.toggle('is-open', open);
+      document.documentElement.classList.toggle('nav-open', open);
       if (scrim) scrim.classList.toggle('is-open', open);
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       document.body.style.overflow = open ? 'hidden' : '';
@@ -490,7 +495,7 @@
         })
         .then(function (result) {
           if (result.ok) {
-            setStatus('Vielen Dank! Ihre Anfrage wurde übermittelt – wir melden uns so rasch wie möglich.', 'success');
+            setStatus('Vielen Dank! Ihre Anfrage wurde übermittelt. Wir melden uns so rasch wie möglich.', 'success');
             form.reset();
           } else {
             setStatus(result.body && result.body.error ? result.body.error : 'Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder rufen Sie uns an.', 'error');

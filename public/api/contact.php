@@ -270,7 +270,7 @@ function encode_address(string $name, string $address): string
 function send_contact_mail(array $config, array $fields): void
 {
     $subject = 'Neue Kontaktanfrage von der Website'
-        . ($fields['topic'] !== '' ? ' – ' . $fields['topic'] : '');
+        . ($fields['topic'] !== '' ? ': ' . $fields['topic'] : '');
 
     $textLines = array_filter([
         'Name: ' . $fields['name'],
