@@ -235,7 +235,7 @@ h3 { font-size: 1.3rem; }
   transform: scale(1);
 }
 .hero-content { position: relative; z-index: 1; padding-top: 120px; padding-bottom: 80px; }
-.hero-content .eyebrow { color: #F2B7B9; }
+.hero-content .eyebrow { color: var(--color-primary); }
 .hero h1 { max-width: 760px; color: var(--color-white); text-shadow: 0 2px 24px rgba(15,15,17,0.45); }
 .hero .lede { max-width: 560px; color: rgba(255,255,255,0.92); font-size: 1.2rem; text-shadow: 0 1px 12px rgba(15,15,17,0.4); }
 .hero-actions { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
@@ -395,7 +395,7 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 /* Sehr schmale Handys: längster Text (Schwerpunkte) braucht etwas mehr Platz – für alle Seiten gleich */
 @media (max-width: 340px) { .page-hero--image { height: 560px; } }
 .page-hero .container { position: relative; }
-.page-hero .eyebrow { color: #F2B7B9; }
+.page-hero .eyebrow { color: var(--color-primary); }
 .page-hero h1 { color: var(--color-white); max-width: 720px; }
 .page-hero p { max-width: 560px; color: rgba(255,255,255,0.8); font-size: 1.1rem; }
 .breadcrumb { display: flex; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
