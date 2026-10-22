@@ -398,6 +398,33 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 .page-hero .eyebrow { color: var(--color-primary); }
 .page-hero h1 { color: var(--color-white); max-width: 720px; }
 .page-hero p { max-width: 560px; color: rgba(255,255,255,0.8); font-size: 1.1rem; }
+
+/* ---------- Lesbarkeit von Text auf Fotos (Variante A) ----------
+   Dunkle Schrift mit hellem Schein statt weißer Schrift. Die Fotos selbst
+   bleiben unverändert (kein Abdunkeln, kein Aufhellen, keine Textfelder). */
+:root {
+  --glow: 0 0 1px rgba(255,255,255,0.95), 0 0 10px rgba(255,255,255,0.9), 0 0 26px rgba(255,255,255,0.75);
+  --glow-sm: 0 0 1px rgba(255,255,255,0.95), 0 0 8px rgba(255,255,255,0.95), 0 0 20px rgba(255,255,255,0.8);
+}
+.hero h1, .hero-facts strong, .page-hero--image h1 { color: var(--color-ink); text-shadow: var(--glow); }
+.hero .lede, .hero-facts span, .page-hero--image p { color: #26262B; font-weight: 500; text-shadow: var(--glow-sm); }
+.hero-facts { border-top-color: rgba(27,27,31,0.25); }
+.hero-content .eyebrow, .page-hero--image .eyebrow {
+  font-weight: 700;
+  text-shadow: 0 0 1px #fff, 0 0 8px rgba(255,255,255,0.95), 0 0 18px rgba(255,255,255,0.85);
+}
+.hero .btn--ghost { color: var(--color-ink); border-color: rgba(27,27,31,0.55); background: rgba(255,255,255,0.6); }
+.hero .btn--ghost:hover { background: rgba(255,255,255,0.85); }
+.scroll-hint { color: var(--color-ink); text-shadow: var(--glow-sm); }
+.scroll-hint__line { background: rgba(27,27,31,0.3); }
+.scroll-hint:hover .scroll-hint__label { color: var(--color-primary); }
+/* Kopfzeile ganz oben auf der Startseite (noch ohne eigenen Hintergrund) */
+.site-header:not(.is-scrolled):not(.is-solid) .brand-text,
+.site-header:not(.is-scrolled):not(.is-solid) .brand-text span,
+.site-header:not(.is-scrolled):not(.is-solid) .main-nav a:not(.btn) { color: var(--color-ink); text-shadow: var(--glow-sm); }
+.site-header:not(.is-scrolled):not(.is-solid) .nav-toggle span,
+.site-header:not(.is-scrolled):not(.is-solid) .nav-toggle::before,
+.site-header:not(.is-scrolled):not(.is-solid) .nav-toggle::after { background: var(--color-ink); }
 .breadcrumb { display: flex; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
 .breadcrumb a:hover { color: var(--color-white); }
 
@@ -701,6 +728,10 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
   box-shadow: 0 0 0 3px rgba(212,32,39,0.14);
 }
 .form-field textarea { resize: vertical; min-height: 140px; }
+/* Felder passen sich der Breite an (sonst erzwingt das längste Rechtsgebiet in der
+   Auswahl eine Mindestbreite und das Formular wird am Handy rechts abgeschnitten) */
+.split > *, .form-grid > * { min-width: 0; }
+.form-field input, .form-field select, .form-field textarea { width: 100%; min-width: 0; }
 .form-check { display: flex; gap: 12px; align-items: flex-start; font-size: 0.86rem; color: var(--color-ink-soft); }
 .form-check input { margin-top: 4px; }
 .form-check a { text-decoration: underline; color: var(--color-ink); }
@@ -909,8 +940,14 @@ html.cookie-reading .back-to-top { display: none; }
 @media (max-width: 600px) {
   .section { padding: 64px 0; }
   .hero-content { padding-top: 100px; }
+  /* Handy: Kennzahlen (seit 1990, 6 Rechtsgebiete, 1:1, 1030 Wien) ausblenden */
+  .hero-facts { display: none; }
   .scroll-hint { bottom: 18px; }
   .cta-banner { padding: 36px 24px; }
+  /* Kontaktformular: mehr Platz für die Felder */
+  .contact-card { padding: 26px 20px; }
+  /* iPhones vergrößern beim Antippen die ganze Seite, wenn Felder kleiner als 16 px sind */
+  .form-field input, .form-field select, .form-field textarea { font-size: 16px; }
   .cookie-banner { width: calc(100% - 24px); padding: 22px; }
   html.cookie-reading .cookie-banner { bottom: 12px; }
   /* Handy: Pfeil im Kreis statt rotem Strich */
