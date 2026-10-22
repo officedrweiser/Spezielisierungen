@@ -966,7 +966,10 @@ html.cookie-reading .back-to-top { display: none; }
   .cookie-banner { width: calc(100% - 24px); padding: 22px; }
   html.cookie-reading .cookie-banner { bottom: 12px; }
   /* Handy: Pfeil im Kreis statt rotem Strich */
-  .back-to-top { left: 14px; bottom: calc(18px + var(--btt-lift, 0px)); padding: 0; }
+  /* Handy: Pfeil bleibt immer unten in der Ecke, auch über der Fußzeile; darunter
+     etwas Platz, damit er ganz unten „Impressum“ und „Datenschutz“ nicht verdeckt */
+  .back-to-top { left: 14px; bottom: 18px; padding: 0; }
+  .site-footer { padding-bottom: 84px; }
   .back-to-top__label, .back-to-top__line { display: none; }
   .back-to-top::before {
     content: '';
