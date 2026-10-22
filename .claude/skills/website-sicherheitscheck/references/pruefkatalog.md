@@ -239,7 +239,10 @@ besonders peinlich.
   der EasyList-Cookie-Liste (AdGuard, 1Blocker, Wipr in Safari, uBlock usw.). Ohne
   Gegenmaßnahme bliebe die Seite gesperrt, ohne dass ein Fenster zu sehen ist. Das war im
   10/2026 in Safari der Fall. `main.js` (`unlockIfBannerHidden`) gibt die Seite frei, wenn
-  das Fenster nicht dargestellt wird. Optionale Dienste bleiben dann aus. Die Klassen
+  das Fenster nicht dargestellt wird, und entfernt dann auch den grauen Hintergrund. Manche
+  Blocker verstecken nur das Fenster und lassen den Hintergrund stehen; zuerst war die Seite
+  dann grau und nicht anklickbar. Die Prüfung läuft laufend (jede Sekunde), weil manche Blocker
+  erst später greifen. Optionale Dienste bleiben ohne Zustimmung aus. Die Klassen
   bewusst **nicht** umbenennen, um Blocker zu umgehen: Wer Cookie-Fenster blockiert, will
   sie nicht sehen. `browser_check.js` prüft diesen Fall mit.
 - Ein neuer Link im Text der Datenschutzerklärung auf eine andere Seite der Website wird im

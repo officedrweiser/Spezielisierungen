@@ -149,19 +149,34 @@ async function assertLocked(pg, label) {
     await ctx.close();
   }
 
-  // Inhaltsblocker (z. B. Safari mit AdGuard/1Blocker/Wipr) verstecken #cookie-banner und
-  // #cookie-backdrop laut EasyList-Cookie-Liste. Dann darf die Seite nicht gesperrt bleiben.
-  {
+  // Inhaltsblocker (z. B. Safari mit AdGuard/1Blocker/Wipr, „Ablenkungen ausblenden“) verstecken
+  // #cookie-banner (EasyList-Cookie-Liste) – manche auch #cookie-backdrop, manche erst später.
+  // Dann darf die Seite weder gesperrt noch grau bleiben (10/2026 in Safari aufgetreten).
+  for (const [css, label, delay] of [
+    ['#cookie-banner,#cookie-backdrop{display:none!important}', 'Fenster + Hintergrund versteckt', 0],
+    ['#cookie-banner{display:none!important}', 'nur Fenster versteckt', 0],
+    ['#cookie-banner{display:none!important}', 'Blocker greift erst nach 3 s', 3000]]) {
     const c = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-    const inject = async (route) => { const r = await route.fetch(); const body = (await r.text()).replace('</head>', '<style>#cookie-banner,#cookie-backdrop{display:none!important}</style></head>'); await route.fulfill({ response: r, body }); };
-    await c.route('**/*.html', inject); await c.route(/\/$/, inject);
+    if (!delay) {
+      const inject = async (route) => { const r = await route.fetch(); const body = (await r.text()).replace('</head>', `<style>${css}</style></head>`); await route.fulfill({ response: r, body }); };
+      await c.route('**/*.html', inject); await c.route(/\/$/, inject);
+    }
     const pg = await c.newPage(); const third = [];
     pg.on('request', r => { if (!r.url().startsWith(BASE) && !r.url().startsWith('data:')) third.push(new URL(r.url()).host); });
-    await pg.goto(BASE + '/', { waitUntil: 'networkidle' }); await pg.waitForTimeout(2500);
+    await pg.goto(BASE + '/', { waitUntil: 'networkidle' });
+    if (delay) { await pg.waitForTimeout(delay); await pg.addStyleTag({ content: css }); }
+    await pg.waitForTimeout(2500);
     await pg.mouse.wheel(0, 800); await pg.waitForTimeout(400);
-    const st = await pg.evaluate(() => ({ locked: document.documentElement.classList.contains('cookie-locked'), inert: document.querySelector('main').hasAttribute('inert'), y: scrollY }));
-    (!st.locked && !st.inert && st.y > 0 && !third.length) ? ok('Mit Cookie-Blocker (Fenster versteckt): Seite benutzbar, keine Dienste von Dritten')
-      : bad(`Mit Cookie-Blocker: gesperrt=${st.locked}, inaktiv=${st.inert}, scrollbar=${st.y > 0}, Dritte=${third.join(',')}`);
+    const st = await pg.evaluate(() => {
+      const bd = document.getElementById('cookie-backdrop'); const bs = getComputedStyle(bd);
+      const link = [...document.querySelectorAll('main a[href]')].find(a => { const r = a.getBoundingClientRect(); return r.top > 80 && r.bottom < innerHeight; });
+      let clickable = null; if (link) { const r = link.getBoundingClientRect(); const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); clickable = !!top && (top === link || link.contains(top)); }
+      return { locked: document.documentElement.classList.contains('cookie-locked'), inert: document.querySelector('main').hasAttribute('inert'), y: scrollY,
+               grey: bs.display !== 'none' && parseFloat(bs.opacity) > 0.05, clickable };
+    });
+    const good = !st.locked && !st.inert && st.y > 0 && !st.grey && st.clickable !== false && !third.length;
+    good ? ok(`Cookie-Blocker (${label}): Seite benutzbar, nicht grau, keine Dienste von Dritten`)
+         : bad(`Cookie-Blocker (${label}): gesperrt=${st.locked}, inaktiv=${st.inert}, scrollbar=${st.y > 0}, grau=${st.grey}, anklickbar=${st.clickable}, Dritte=${third.join(',')}`);
     await c.close();
   }
 

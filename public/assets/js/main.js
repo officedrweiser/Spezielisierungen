@@ -256,21 +256,22 @@
   // bleiben aus, weil keine Zustimmung vorliegt.
   function bannerRendered() {
     if (!banner) return false;
+    if (typeof banner.checkVisibility === 'function' && !banner.checkVisibility({ visibilityProperty: true })) return false;
     var style = window.getComputedStyle(banner);
     return style.display !== 'none' && style.visibility !== 'hidden' && banner.getClientRects().length > 0;
   }
+  // Soll das Fenster sichtbar sein, ist es aber nicht (Blocker), dann Sperre UND
+  // grauen Hintergrund entfernen. Manche Blocker verstecken nur das Fenster,
+  // nicht den Hintergrund; ohne diese Prüfung bliebe die Seite grau und
+  // nicht anklickbar.
   function unlockIfBannerHidden() {
-    if (!pageLocked || bannerRendered()) return;
-    setPageLocked(false);
+    if (!banner || !banner.classList.contains('is-visible') || bannerRendered()) return;
+    if (pageLocked) setPageLocked(false);
     if (cookieBackdrop) cookieBackdrop.classList.remove('is-visible');
   }
   function showBanner() {
     if (banner) banner.classList.add('is-visible');
     setPageLocked(true);
-    // Manche Blocker greifen erst kurz nach dem Laden: mehrfach nachsehen.
-    unlockIfBannerHidden();
-    setTimeout(unlockIfBannerHidden, 500);
-    setTimeout(unlockIfBannerHidden, 2000);
     if (cookieBackdrop) cookieBackdrop.classList.toggle('is-visible', !readingMode);
     if (banner) {
       if (readingMode) banner.removeAttribute('aria-modal');
@@ -278,7 +279,12 @@
       banner.setAttribute('tabindex', '-1');
       banner.focus({ preventScroll: true });
     }
+    // Erst jetzt prüfen (Fenster und Hintergrund sind gesetzt). Manche Blocker
+    // greifen erst nach dem Laden, deshalb zusätzlich laufend nachsehen.
+    unlockIfBannerHidden();
   }
+  setInterval(unlockIfBannerHidden, 1000);
+  window.addEventListener('load', unlockIfBannerHidden);
   function hideBanner() {
     if (banner) {
       banner.classList.remove('is-visible');
