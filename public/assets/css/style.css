@@ -411,7 +411,9 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 }
 .hero h1, .hero-facts strong, .page-hero--image h1 { color: var(--color-ink); text-shadow: var(--glow); }
 .hero .lede, .hero-facts span, .page-hero--image p { color: #26262B; font-weight: 500; text-shadow: var(--glow-sm); }
-.hero-facts { border-top-color: rgba(27,27,31,0.25); }
+/* Kennzahlen (seit 1990 …): ohne Trennstrich darüber und ohne hellen Schein */
+.hero-facts { border-top: 0; }
+.hero-facts strong, .hero-facts span { text-shadow: none; }
 .hero-content .eyebrow, .page-hero--image .eyebrow {
   font-weight: 700;
   text-shadow: 0 0 1px #fff, 0 0 8px rgba(255,255,255,0.95), 0 0 18px rgba(255,255,255,0.85);
