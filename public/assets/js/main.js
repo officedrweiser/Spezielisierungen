@@ -250,9 +250,27 @@
   });
   window.addEventListener('resize', updateReadingSpace);
   if (window.ResizeObserver && banner) new ResizeObserver(updateReadingSpace).observe(banner);
+  // Inhaltsblocker (z. B. in Safari: AdGuard, 1Blocker, Wipr, „Ablenkungen
+  // ausblenden“) verstecken Cookie-Fenster über Filterlisten. Dann darf die
+  // Seite nicht gesperrt bleiben: Sie bleibt benutzbar, und optionale Dienste
+  // bleiben aus, weil keine Zustimmung vorliegt.
+  function bannerRendered() {
+    if (!banner) return false;
+    var style = window.getComputedStyle(banner);
+    return style.display !== 'none' && style.visibility !== 'hidden' && banner.getClientRects().length > 0;
+  }
+  function unlockIfBannerHidden() {
+    if (!pageLocked || bannerRendered()) return;
+    setPageLocked(false);
+    if (cookieBackdrop) cookieBackdrop.classList.remove('is-visible');
+  }
   function showBanner() {
     if (banner) banner.classList.add('is-visible');
     setPageLocked(true);
+    // Manche Blocker greifen erst kurz nach dem Laden: mehrfach nachsehen.
+    unlockIfBannerHidden();
+    setTimeout(unlockIfBannerHidden, 500);
+    setTimeout(unlockIfBannerHidden, 2000);
     if (cookieBackdrop) cookieBackdrop.classList.toggle('is-visible', !readingMode);
     if (banner) {
       if (readingMode) banner.removeAttribute('aria-modal');

@@ -223,6 +223,12 @@ Chat. Die Struktur steht in `references/bericht-vorlage.md`.
   ob „Content Security Policy“ in der Meldung steht.
 - **Fokus auf `BODY`** bei der Tab-Prüfung bedeutet: Der Fokus ist in der Browser-Leiste,
   nicht auf der Seite. Das ist kein Leck.
+- **Safari/WebKit gegenprüfen:** Playwright-WebKit ist hier nicht installiert (nicht per
+  `playwright install` nachladen). Echtes WebKit gibt es über `apt-get install
+  webkit2gtk-driver xvfb` und Selenium (`webdriver.WebKitGTK`, MiniBrowser unter
+  `/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/`, Bildschirm über `Xvfb :99`). Meldet ein Nutzer
+  „Seite gesperrt, kein Cookie-Fenster“, ist zuerst ein Inhaltsblocker zu vermuten
+  (Prüfkatalog G).
 - **Weiches Scrollen:** Die Seite hat `scroll-behavior: smooth`. Ein `scrollTo()` im Test
   läuft noch, während du schon scrollst, und setzt danach wieder auf 0 zurück. Das sieht
   dann aus wie „lässt sich nicht scrollen“. In Tests deshalb `behavior: 'instant'` verwenden.

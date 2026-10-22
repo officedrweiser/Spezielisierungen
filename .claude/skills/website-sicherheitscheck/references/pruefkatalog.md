@@ -235,6 +235,13 @@ besonders peinlich.
   Lass jeden neuen Link im Banner durch `browser_check.js` laufen.
 - `localStorage` ist gesperrt (private Fenster): Der Banner muss trotzdem erscheinen und
   sperren.
+- Inhaltsblocker verstecken das Fenster: `#cookie-banner` und `#cookie-backdrop` stehen in
+  der EasyList-Cookie-Liste (AdGuard, 1Blocker, Wipr in Safari, uBlock usw.). Ohne
+  Gegenmaßnahme bliebe die Seite gesperrt, ohne dass ein Fenster zu sehen ist. Das war im
+  10/2026 in Safari der Fall. `main.js` (`unlockIfBannerHidden`) gibt die Seite frei, wenn
+  das Fenster nicht dargestellt wird. Optionale Dienste bleiben dann aus. Die Klassen
+  bewusst **nicht** umbenennen, um Blocker zu umgehen: Wer Cookie-Fenster blockiert, will
+  sie nicht sehen. `browser_check.js` prüft diesen Fall mit.
 - Ein neuer Link im Text der Datenschutzerklärung auf eine andere Seite der Website wird im
   Lesemodus automatisch gesperrt. Prüfe trotzdem mit `browser_check.js`, dass er nicht
   wegführt.

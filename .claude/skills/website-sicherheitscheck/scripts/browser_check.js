@@ -149,6 +149,22 @@ async function assertLocked(pg, label) {
     await ctx.close();
   }
 
+  // Inhaltsblocker (z. B. Safari mit AdGuard/1Blocker/Wipr) verstecken #cookie-banner und
+  // #cookie-backdrop laut EasyList-Cookie-Liste. Dann darf die Seite nicht gesperrt bleiben.
+  {
+    const c = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const inject = async (route) => { const r = await route.fetch(); const body = (await r.text()).replace('</head>', '<style>#cookie-banner,#cookie-backdrop{display:none!important}</style></head>'); await route.fulfill({ response: r, body }); };
+    await c.route('**/*.html', inject); await c.route(/\/$/, inject);
+    const pg = await c.newPage(); const third = [];
+    pg.on('request', r => { if (!r.url().startsWith(BASE) && !r.url().startsWith('data:')) third.push(new URL(r.url()).host); });
+    await pg.goto(BASE + '/', { waitUntil: 'networkidle' }); await pg.waitForTimeout(2500);
+    await pg.mouse.wheel(0, 800); await pg.waitForTimeout(400);
+    const st = await pg.evaluate(() => ({ locked: document.documentElement.classList.contains('cookie-locked'), inert: document.querySelector('main').hasAttribute('inert'), y: scrollY }));
+    (!st.locked && !st.inert && st.y > 0 && !third.length) ? ok('Mit Cookie-Blocker (Fenster versteckt): Seite benutzbar, keine Dienste von Dritten')
+      : bad(`Mit Cookie-Blocker: gesperrt=${st.locked}, inaktiv=${st.inert}, scrollbar=${st.y > 0}, Dritte=${third.join(',')}`);
+    await c.close();
+  }
+
   console.log('\n== 3. Nach Zustimmung: Fehler, Blockaden, Schriften, Funktionen');
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await ctx.addInitScript((k) => { try { localStorage.setItem(k, JSON.stringify({ necessary: true, analytics: false, tag_manager: false, ts: Date.now() })); } catch (e) {} }, CONSENT_KEY);
