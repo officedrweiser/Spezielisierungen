@@ -15,6 +15,7 @@ Inhalt
 - H. Code im Browser
 - I. Live-Website und alte WordPress-Seite
 - J. Betrieb und Organisation (Checkliste für den Auftraggeber)
+- K. Lücken im PHP selbst (z. B. PHP2Shell, 10/2026)
 
 ---
 
@@ -292,3 +293,65 @@ Bericht:
 - Postfach-Kontrolle: Kommt eine Test-Anfrage nach dem Hochladen wirklich an?
 - Wiederholung: Sicherheitscheck nach jeder größeren Änderung und sonst etwa alle drei Monate.
   Abhängigkeiten veralten auch ohne Änderungen.
+
+## K. Lücken im PHP selbst (z. B. PHP2Shell, 10/2026)
+
+**Warum:** Im Oktober 2026 wurden mit „PHP2Shell“ (CVE-2026-109618 und CVE-2026-109619,
+CVSS 9.2) zwei Lücken im PHP-Interpreter bekannt. Darüber lässt sich ohne Anmeldung Code auf
+dem Server ausführen. Sie greifen schon beim Einlesen einer Anfrage, also bevor der Code der
+Website läuft. Guter Code in `contact.php` allein schützt deshalb nicht.
+- **109618:** Speicherüberlauf (OOM) beim Einlesen, vor allem bei Datei-Uploads (multipart).
+- **109619:** Veralteter Zustand nach einem Absturz (Fatal Error, Zeitüberschreitung) wird von
+  einer späteren Anfrage auf demselben Prozess weiterverwendet. Ein bestätigter Weg ist dabei
+  die Upload-Fortschrittsanzeige der Sitzungen.
+- **Betroffen:** jede PHP-Installation, die Webanfragen bedient (mod_php am stärksten, FPM,
+  FastCGI, LiteSpeed).
+- **Gepatcht ab:** 8.2.35, 8.3.36, 8.4.27, 8.5.12. PHP 8.1 und älter bekommt keine Korrektur.
+
+**Prüfen:**
+- Apache-Testumgebung: `probe_server.sh` (PHP-Reste müssen 404 liefern, nie „PHP
+  AUSGEFUEHRT“) und `GUARD_SRC=Server form_attacks.sh` (Abschnitt „Schutz vor PHP-Lücken“,
+  alles „(Server)“).
+- `.user.ini` mit `php-cgi` gegenprüfen. Die Werte müssen greifen, und beim Start dürfen
+  keine Warnungen erscheinen. Warnungen beim Start sind selbst ein Auslöser von 109619.
+  ```bash
+  cd <ordner mit .user.ini und t.php> && REDIRECT_STATUS=200 REQUEST_METHOD=GET \
+    SCRIPT_FILENAME=$PWD/t.php DOCUMENT_ROOT=$PWD php-cgi -d display_startup_errors=1 -d error_reporting=-1
+  ```
+- Live: `live_check.sh`, Abschnitt PHP-Version. Verrät der Server sie nicht, prüft der
+  Auftraggeber sie in Plesk bzw. im WordPress-Dashboard (Website-Zustand → Bericht → Server).
+
+**Soll:**
+- **Beim Hoster** (nur der Auftraggeber oder A1 kann das ändern): PHP mindestens in der
+  gepatchten Version, keine Version ≤ 8.1. Der PHP-Handler wird „von Apache
+  bereitgestellt“, damit die `.htaccess` greift.
+- **`.htaccess`:**
+  - Außer `api/contact.php` liefert jede `.php`-Adresse 404, auch Reste der alten
+    WordPress-Seite.
+  - `api/contact(.php)` erreicht PHP nur bei POST mit `Content-Type: application/json` und
+    höchstens 20 000 Byte. Sonst antwortet Apache selbst mit 405, 415 bzw. 413.
+- **`.user.ini`** (wirkt bei FPM/FastCGI): `session.upload_progress.enabled = 0`, kleine
+  `max_input_vars` und `max_input_nesting_level`, `display_errors = 0`. Nur gültige,
+  versionsübergreifende Direktiven verwenden.
+- **`contact.php`:**
+  - Nimmt nur JSON an (415).
+  - Fängt jeden Fehler mit `try/catch (Throwable)` ab, damit es keinen Fatal Error gibt.
+  - Felder müssen Text sein, sonst bleiben sie leer.
+  - `json_decode` mit Tiefe 8.
+  - `display_errors` aus.
+- **Node:** nicht betroffen (kein PHP). `server.js` liefert nie `.php` aus und verlangt
+  ebenfalls JSON.
+
+**Typische Fehler:**
+- `php_value`/`php_flag` in die `.htaccess` schreiben. Bei mod_php werden sie vor dem Start
+  der Anfrage angewendet und können laut Advisory selbst Teil der Angriffskette sein. Bei
+  FPM erzeugen sie sogar einen Fehler 500. Härtung gehört in die `.user.ini`.
+- Die `.user.ini` mit Tippfehlern oder veralteten Direktiven füllen. Das erzeugt Warnungen
+  beim Start und damit genau den Auslöser.
+- Nur `api/contact` absichern: Bei FPM startet PHP auch für jede andere, sogar nicht
+  vorhandene `.php`-Adresse. Deshalb gibt es die 404-Regel für alle übrigen `.php`.
+- `memory_limit=-1` als Gegenmittel setzen: Das Advisory nennt es nur als
+  unvollständige Notlösung, und auf geteiltem Hosting ist es riskant. Das Update beim
+  Hoster ersetzt nichts.
+- Beim Umzug alte WordPress-Dateien liegen lassen (`wp-config.php` mit
+  Datenbankzugang). Die Anleitung verlangt, sie nach der Sicherung zu löschen.

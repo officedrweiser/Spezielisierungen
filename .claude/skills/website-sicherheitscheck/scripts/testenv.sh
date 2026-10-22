@@ -43,11 +43,18 @@ start)
   start_sink
   case "$MODE" in
   node)
+    # Frische Prüfumgebung: Pakete fehlen -> exakt laut package-lock.json installieren
+    if [ ! -d "$ROOT/node_modules" ]; then
+      echo "  node_modules fehlt – installiere Pakete (npm ci)…"
+      (cd "$ROOT" && npm ci --omit=dev --no-audit --no-fund > "$WORK/npm.log" 2>&1) || { echo "npm ci fehlgeschlagen, siehe $WORK/npm.log"; exit 1; }
+    fi
     # "exec", damit die gespeicherte PID wirklich die des Servers ist (sonst bleibt er beim Stoppen übrig)
     (cd "$ROOT" && exec env PORT=3100 SMTP_HOST=127.0.0.1 SMTP_PORT=2525 SMTP_SECURE=false SMTP_USER=test SMTP_PASS=test \
       SMTP_FROM=office@drweiser.at CONTACT_RECIPIENT=office@drweiser.at node server/server.js > "$WORK/node.log" 2>&1) &
     echo $! > "$WORK/node.pid"
-    sleep 2; echo "Node-Testserver: http://localhost:3100  (Formular: POST /api/contact)";;
+    sleep 2
+    if ! port_busy 3100; then echo "Node-Testserver startet nicht:"; tail -5 "$WORK/node.log"; exit 1; fi
+    echo "Node-Testserver: http://localhost:3100  (Formular: POST /api/contact)";;
   php)
     rm -rf "$WORK/php" && mkdir -p "$WORK/php" && cp -r "$ROOT/public" "$WORK/php/"
     write_php_config "$WORK/php/public/api"
@@ -76,6 +83,8 @@ PHP
     # Typische Fehler beim Hochladen nachstellen: Kopien der Zugangsdaten, .env, Ordner ohne index.html
     for f in config.php.txt config.php.bak "config.php~" config.old.php; do echo "<?php // GEHEIM smtp_pass=Passwort123" > "$A/htdocs/api/$f"; done
     echo "SMTP_PASS=GEHEIM" > "$A/htdocs/.env"
+    # Vergessene PHP-Reste der alten WordPress-Seite nachstellen: dürfen nie ausgeführt werden
+    for f in xmlrpc.php wp-login.php alt/index.php; do mkdir -p "$(dirname "$A/htdocs/$f")"; echo '<?php echo "PHP AUSGEFUEHRT";' > "$A/htdocs/$f"; done
     PHPMOD=$(ls /usr/lib/apache2/modules/libphp*.so | head -1)
     cat > "$A/httpd.conf" <<CONF
 ServerRoot /etc/apache2

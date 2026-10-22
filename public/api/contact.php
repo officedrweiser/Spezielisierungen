@@ -29,71 +29,94 @@ const ALLOWED_TOPICS = [
     'Sonstiges',
 ];
 
+// Fehlermeldungen nie an Besucher ausgeben (würden Pfade und Details verraten).
+ini_set('display_errors', '0');
+
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-    respond(405, ['error' => 'Methode nicht erlaubt.']);
+// Jeder unerwartete Fehler wird abgefangen und sauber beantwortet. Ein
+// unbehandelter Absturz (Fatal Error) war einer der Auslöser der PHP-Lücke
+// „PHP2Shell“ (CVE-2026-109619); er soll hier gar nicht erst entstehen.
+try {
+    handle_request();
+} catch (Throwable $e) {
+    error_log('[contact] Unerwarteter Fehler: ' . $e->getMessage());
+    respond(500, ['error' => 'Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder rufen Sie uns an.']);
 }
 
-// Anfragen, die ein Browser von einer fremden Website aus abschickt, ablehnen.
-if (is_foreign_origin()) {
-    respond(403, ['error' => 'Anfrage nicht erlaubt.']);
-}
 
-$config = load_config();
+function handle_request(): void
+{
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+        respond(405, ['error' => 'Methode nicht erlaubt.']);
+    }
 
-if (!rate_limit_ok(client_ip())) {
-    respond(429, ['error' => 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.']);
-}
+    // Das Formular schickt ausschließlich JSON. Datei-Uploads (multipart) und
+    // andere Formate werden abgewiesen.
+    if (stripos((string) ($_SERVER['CONTENT_TYPE'] ?? ''), 'application/json') !== 0) {
+        respond(415, ['error' => 'Anfrage nicht erlaubt.']);
+    }
 
-$input = read_input();
+    // Anfragen, die ein Browser von einer fremden Website aus abschickt, ablehnen.
+    if (is_foreign_origin()) {
+        respond(403, ['error' => 'Anfrage nicht erlaubt.']);
+    }
 
-$name    = trim((string) ($input['name'] ?? ''));
-$email   = trim((string) ($input['email'] ?? ''));
-$phone   = trim((string) ($input['phone'] ?? ''));
-$topic   = trim((string) ($input['topic'] ?? ''));
-$topic   = in_array($topic, ALLOWED_TOPICS, true) ? $topic : '';
-$message = trim((string) ($input['message'] ?? ''));
-$privacy = !empty($input['privacy']) && $input['privacy'] !== 'false';
-$honeypot = trim((string) ($input['website'] ?? ''));
+    $config = load_config();
 
-// Spam-Falle: unsichtbares Feld, das nur Bots ausfüllen. Wir tun so, als wäre
-// alles gut gelaufen, verschicken aber keine E-Mail.
-if ($honeypot !== '') {
+    if (!rate_limit_ok(client_ip())) {
+        respond(429, ['error' => 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.']);
+    }
+
+    $input = read_input();
+
+    $name    = field($input, 'name');
+    $email   = field($input, 'email');
+    $phone   = field($input, 'phone');
+    $topic   = field($input, 'topic');
+    $topic   = in_array($topic, ALLOWED_TOPICS, true) ? $topic : '';
+    $message = field($input, 'message');
+    $privacy = !empty($input['privacy']) && $input['privacy'] !== 'false';
+    $honeypot = field($input, 'website');
+
+    // Spam-Falle: unsichtbares Feld, das nur Bots ausfüllen. Wir tun so, als wäre
+    // alles gut gelaufen, verschicken aber keine E-Mail.
+    if ($honeypot !== '') {
+        respond(200, ['ok' => true]);
+    }
+
+    if ($name === '' || mb_strlen_safe($name) > MAX_NAME_LENGTH) {
+        respond(400, ['error' => 'Bitte geben Sie Ihren Namen an.']);
+    }
+    if ($email === '' || mb_strlen_safe($email) > MAX_EMAIL_LENGTH || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        respond(400, ['error' => 'Bitte geben Sie eine gültige E-Mail-Adresse an.']);
+    }
+    if (mb_strlen_safe($phone) > MAX_PHONE_LENGTH) {
+        respond(400, ['error' => 'Die Telefonnummer ist zu lang.']);
+    }
+    if ($message === '' || mb_strlen_safe($message) > MAX_MESSAGE_LENGTH) {
+        respond(400, ['error' => 'Bitte geben Sie eine Nachricht ein (max. 5000 Zeichen).']);
+    }
+    if (!$privacy) {
+        respond(400, ['error' => 'Bitte bestätigen Sie die Datenschutzerklärung.']);
+    }
+
+    try {
+        send_contact_mail($config, [
+            'name'    => $name,
+            'email'   => $email,
+            'phone'   => $phone,
+            'topic'   => $topic,
+            'message' => $message,
+        ]);
+    } catch (Throwable $e) {
+        error_log('[contact] Versand fehlgeschlagen: ' . $e->getMessage());
+        respond(502, ['error' => 'Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder rufen Sie uns an.']);
+    }
+
     respond(200, ['ok' => true]);
 }
-
-if ($name === '' || mb_strlen_safe($name) > MAX_NAME_LENGTH) {
-    respond(400, ['error' => 'Bitte geben Sie Ihren Namen an.']);
-}
-if ($email === '' || mb_strlen_safe($email) > MAX_EMAIL_LENGTH || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    respond(400, ['error' => 'Bitte geben Sie eine gültige E-Mail-Adresse an.']);
-}
-if (mb_strlen_safe($phone) > MAX_PHONE_LENGTH) {
-    respond(400, ['error' => 'Die Telefonnummer ist zu lang.']);
-}
-if ($message === '' || mb_strlen_safe($message) > MAX_MESSAGE_LENGTH) {
-    respond(400, ['error' => 'Bitte geben Sie eine Nachricht ein (max. 5000 Zeichen).']);
-}
-if (!$privacy) {
-    respond(400, ['error' => 'Bitte bestätigen Sie die Datenschutzerklärung.']);
-}
-
-try {
-    send_contact_mail($config, [
-        'name'    => $name,
-        'email'   => $email,
-        'phone'   => $phone,
-        'topic'   => $topic,
-        'message' => $message,
-    ]);
-} catch (Throwable $e) {
-    error_log('[contact] Versand fehlgeschlagen: ' . $e->getMessage());
-    respond(502, ['error' => 'Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder rufen Sie uns an.']);
-}
-
-respond(200, ['ok' => true]);
 
 
 /* ------------------------------------------------------------------ */
@@ -165,14 +188,21 @@ function read_input(): array
         respond(413, ['error' => 'Ihre Nachricht ist zu lang.']);
     }
     if (is_string($raw) && $raw !== '') {
-        $decoded = json_decode($raw, true);
+        $decoded = json_decode($raw, true, 8);
         if (is_array($decoded)) {
             return $decoded;
         }
     }
 
-    // Fallback für ein klassisches Formular-POST ohne JavaScript.
-    return is_array($_POST) ? $_POST : [];
+    return [];
+}
+
+/** Liefert ein Formularfeld als Text; Listen oder Objekte statt Text werden verworfen. */
+function field(array $input, string $key): string
+{
+    $value = $input[$key] ?? '';
+
+    return is_scalar($value) ? trim((string) $value) : '';
 }
 
 function mb_strlen_safe(string $value): int

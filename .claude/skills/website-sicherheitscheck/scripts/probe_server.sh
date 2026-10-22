@@ -10,6 +10,7 @@ trap 'rm -f "$TMP"' EXIT
 
 leak_check() {  # Prüft, ob die Antwort Quelltext oder Geheimnisse enthält
   if grep -q -E "<\?php|smtp_pass|SMTP_PASS|GEHEIM" "$TMP" 2>/dev/null; then echo "<<< INHALT AUSGELIEFERT"; fi
+  if grep -q "PHP AUSGEFUEHRT" "$TMP" 2>/dev/null; then echo "<<< PHP AUSGEFÜHRT (sollte gesperrt sein)"; fi
   if grep -q -i "Index of /" "$TMP" 2>/dev/null; then echo "<<< ORDNERLISTE"; fi
 }
 
@@ -18,7 +19,7 @@ for u in \
   /api/contact.php /api/contact.PHP /api/contact%2ephp /api/contact%2Ephp /api/contact.ph%70 \
   /api/contact.php%00 /api/contact.php/ /api/config.php /api/config%2ephp /api/%63onfig.php \
   /api/config.example.php /api/config.example%2ephp /api/config.php.txt /api/config.php.bak \
-  "/api/config.php~" /api/config.old.php /.env /%2eenv /.htaccess /%2ehtaccess /.git/config \
+  "/api/config.php~" /api/config.old.php /.env /%2eenv /.htaccess /%2ehtaccess /.user.ini /.git/config /xmlrpc.php /wp-login.php /alt/index.php /alt/ /gibt-es-nicht.php \
   /..%2f..%2fpackage.json /..%2f.env /%2e%2e/%2e%2e/etc/passwd /package.json /server/server.js \
   /api/ /assets/ /assets/images/ /assets/fonts/; do
   code=$(curl -s -o "$TMP" -w '%{http_code}' --max-time 10 "$BASE$u")

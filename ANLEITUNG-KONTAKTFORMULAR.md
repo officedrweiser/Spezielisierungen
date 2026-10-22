@@ -195,18 +195,28 @@ nicht auffindbar: beim Hoster bzw. IT-Betreuer anfordern.
 3. **Sicherung machen:** Markieren Sie alles in diesem Ordner, Rechtsklick →
    `Herunterladen`, und legen Sie es in einen Ordner „Sicherung alte Website"
    auf Ihrem Computer. Damit können Sie jederzeit zurück.
-4. Links navigieren Sie in den entpackten Projektordner, dort hinein in
+4. **Alte WordPress-Dateien löschen:** Erst wenn die Sicherung vollständig
+   auf Ihrem Computer liegt, löschen Sie am Server die Dateien der alten
+   Seite: die Ordner `wp-admin`, `wp-content`, `wp-includes` und alle
+   `.php`-Dateien (z. B. `index.php`, `wp-login.php`, `xmlrpc.php`,
+   `wp-config.php`). Grund: Jede vergessene PHP-Datei ist ein mögliches
+   Einfallstor für Angriffe auf Lücken im PHP des Servers (zuletzt
+   „PHP2Shell“, Oktober 2026), und `wp-config.php` enthält die Zugangsdaten
+   der alten Datenbank. Die neue `.htaccess` sperrt solche Reste zwar
+   zusätzlich, verlassen sollten Sie sich darauf aber nicht.
+5. Links navigieren Sie in den entpackten Projektordner, dort hinein in
    `public`.
-5. Markieren Sie **den gesamten Inhalt von `public`** (nicht den Ordner
-   selbst!) – also `index.html`, `kontakt.html`, `assets`, `api`, `.htaccess`
-   usw. – und ziehen Sie alles nach rechts auf den Server.
+6. Markieren Sie **den gesamten Inhalt von `public`** (nicht den Ordner
+   selbst!) – also `index.html`, `kontakt.html`, `assets`, `api`, `.htaccess`,
+   `.user.ini` usw. – und ziehen Sie alles nach rechts auf den Server.
 
-> **`.htaccess` wird nicht angezeigt?** In FileZilla oben im Menü:
-> `Server` → `Erzwinge Anzeigen versteckter Dateien`. Diese Datei ist
-> wichtig – ohne sie funktioniert das Formular zwar trotzdem (es gibt einen
-> eingebauten Notfallweg), aber die 404-Fehlerseite greift nicht.
+> **`.htaccess` und `.user.ini` werden nicht angezeigt?** In FileZilla oben
+> im Menü: `Server` → `Erzwinge Anzeigen versteckter Dateien`. Beide Dateien
+> sind wichtig: Die `.htaccess` enthält die Sicherheitsregeln des Webservers
+> (ohne sie fehlen Schutz und 404-Fehlerseite), die `.user.ini` härtet die
+> PHP-Einstellungen für das Kontaktformular.
 
-6. Warten, bis die Übertragung fertig ist (unten „Erfolgreiche
+7. Warten, bis die Übertragung fertig ist (unten „Erfolgreiche
    Übertragungen").
 
 Auf dem Server muss es danach so aussehen:
@@ -214,6 +224,7 @@ Auf dem Server muss es danach so aussehen:
 ```
 httpdocs/
 ├── .htaccess
+├── .user.ini
 ├── index.html
 ├── kontakt.html
 ├── impressum.html
@@ -237,6 +248,24 @@ unverschlüsselt über `http://` aufruft, stellen Sie im A1-Kundenbereich
 301-Weiterleitung von HTTP zu HTTPS“** ein. Das gültige Let's-Encrypt-
 Zertifikat ist bereits vorhanden. Ob es klappt: `http://drweiser.at`
 aufrufen – in der Adresszeile muss danach `https://` stehen.
+
+### PHP aktuell halten (wichtig)
+
+Das Kontaktformular läuft mit PHP. Im Oktober 2026 wurden mit „PHP2Shell“
+(CVE-2026-109618 und CVE-2026-109619) zwei kritische Lücken im PHP selbst
+bekannt, über die Angreifer ohne Anmeldung den Server übernehmen können.
+Beheben kann das nur ein PHP-Update beim Hoster. Die Website ist zusätzlich
+so gebaut, dass möglichst wenig Angriffsfläche bleibt.
+
+1. Im A1-Kundenbereich (Plesk) bei der Domain **„PHP-Einstellungen“** öffnen.
+2. **PHP-Version:** 8.4 (oder 8.3) wählen. Die genaue Version muss mindestens
+   **8.4.27**, **8.3.36**, 8.5.12 bzw. 8.2.35 sein. PHP 8.1 und älter bekommt
+   keine Sicherheitskorrekturen mehr und darf nicht verwendet werden.
+   Steht dort eine ältere Nummer, beim A1-Support nachfragen, ob „PHP2Shell“
+   bereits behoben ist.
+3. **PHP-Handler:** eine Variante wählen, die **von Apache bereitgestellt**
+   wird (z. B. „FPM-Anwendung, bereitgestellt von Apache“), nicht „von
+   nginx“. Nur dann greifen die Sicherheitsregeln aus der `.htaccess`.
 
 ---
 
@@ -372,7 +401,9 @@ erscheint stattdessen im Terminal – praktisch zum Testen des Ablaufs.
 - [ ] SMTP-Zugangsdaten vom IT-Betreuer erhalten
 - [ ] `config.php` aus `config.example.php` erstellt und ausgefüllt
 - [ ] Sicherung der alten Website heruntergeladen
-- [ ] Inhalt von `public/` auf den Server hochgeladen (inkl. `.htaccess`)
+- [ ] Alte WordPress-Dateien vom Server gelöscht (nach der Sicherung)
+- [ ] Inhalt von `public/` auf den Server hochgeladen (inkl. `.htaccess` und `.user.ini`)
+- [ ] PHP-Version in Plesk geprüft (mind. 8.4.27 bzw. 8.3.36, Handler „von Apache bereitgestellt“)
 - [ ] HTTPS-Weiterleitung im A1-Kundenbereich aktiviert (`http://` → `https://`)
 - [ ] Testanfrage abgeschickt → grüne Meldung erschienen
 - [ ] E-Mail in office@drweiser.at angekommen

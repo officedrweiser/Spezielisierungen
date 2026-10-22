@@ -98,8 +98,27 @@ else
   echo "[?] Version nicht eindeutig erkennbar – Quelltext der Startseite ansehen"
 fi
 
+echo; echo "== 6. PHP-Version (wegen PHP2Shell, CVE-2026-109618/-109619)"
+# Gepatcht ab: 8.2.35, 8.3.36, 8.4.27, 8.5.12 – PHP 8.1 und älter bekommt keine Korrektur mehr.
+pv=$(hdr X-Powered-By | grep -o -E 'PHP/[0-9]+\.[0-9]+\.[0-9]+' | cut -d/ -f2)
+if [ -n "$pv" ]; then
+  maj_min=${pv%.*}; patch=${pv##*.}
+  case "$maj_min" in
+    8.2) need=35;; 8.3) need=36;; 8.4) need=27;; 8.5) need=12;; *) need="";;
+  esac
+  if [ -z "$need" ]; then echo "[!] PHP $pv – diese Version bekommt keine Sicherheitskorrektur mehr. Im Hosting-Panel auf 8.4 umstellen."
+  elif [ "$patch" -lt "$need" ]; then echo "[!] PHP $pv ist von PHP2Shell betroffen (gepatcht ab $maj_min.$need). Hoster kontaktieren!"
+  else echo "[ok] PHP $pv enthält die Korrektur"; fi
+  echo "[i] Der Server verrät seine PHP-Version (X-Powered-By) – besser abschalten (expose_php=Off beim Hoster)."
+else
+  echo "[i] Der Server verrät seine PHP-Version nicht (gut). Prüfen lässt sie sich nur von innen:"
+  echo "    WordPress: Werkzeuge -> Website-Zustand -> Bericht -> Server -> PHP-Version;"
+  echo "    sonst im Hosting-Panel (Plesk: Domain -> PHP-Einstellungen) oder beim Hoster erfragen."
+  echo "    Gepatcht ab 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12; PHP 8.1 und älter: auf 8.4 umstellen."
+fi
+
 if [ -n "$REPO" ]; then
-  echo; echo "== 6. GitHub-Repository $REPO"
+  echo; echo "== 7. GitHub-Repository $REPO"
   c=$(curl -s --max-time 20 -o "$TMP" -w '%{http_code}' "https://api.github.com/repos/$REPO")
   case "$c" in
     200) if grep -q '"private": *false' "$TMP"; then

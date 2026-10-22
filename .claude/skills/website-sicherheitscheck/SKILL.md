@@ -48,7 +48,8 @@ Techniker: Er arbeitet unter Windows/PowerShell und startet die Seite lokal mit
 | Cookie-Banner | `public/assets/js/main.js` | sperrt die Seite bis zur Entscheidung, lädt GA/GTM erst nach Zustimmung |
 | Node-Server | `server/server.js`, `server/mailer.js` | Variante 1: Express + nodemailer, Header-Middleware, Spam-Bremse |
 | PHP-Endpunkt | `public/api/contact.php` (+ `config.php` nur am Server) | Variante 2 (A1-Webhosting): eigener SMTP-Client |
-| Apache | `public/.htaccess` | Header, Sperren für Konfig-/Backup-Dateien, Umschreiben auf contact.php |
+| Apache | `public/.htaccess` | Header, Sperren für Konfig-/Backup-Dateien, Umschreiben auf contact.php, PHP-Schutz (nur JSON-POST ≤ 20 KB erreicht PHP, alle anderen `.php` → 404) |
+| PHP-Härtung | `public/.user.ini` | für PHP-FPM/FastCGI: Upload-Fortschritt aus, wenige Eingabefelder, keine Fehlerausgabe |
 | Anleitung | `ANLEITUNG-KONTAKTFORMULAR.md` | Hochladen, Zugangsdaten, HTTPS-Einstellung |
 
 Ändert sich die Struktur (neue Seiten, neue Dienste), passe die Listen in den Skripten an.
@@ -114,8 +115,14 @@ bash $S/testenv.sh stop "$W"
   ausgelieferte Dateien. Das ist kein Befund. Bewerte hier nur das Formular
   (`form_attacks.sh`, `inspect_mails.py`), Dateischutz und Header nur im Apache-Modus.
 - `apache`: Port 8090. Das ist echter Apache mit der echten `.htaccess`. Absichtlich
-  hinterlegt sind `config.php.bak`, `config.php~`, `.env` usw. mit dem Wort „GEHEIM“, und
-  Ordnerlisten sind eingeschaltet. So zeigt sich, ob die .htaccess wirklich schützt.
+  hinterlegt sind `config.php.bak`, `config.php~`, `.env` usw. mit dem Wort „GEHEIM“,
+  vergessene PHP-Reste (`xmlrpc.php`, `wp-login.php`, `alt/index.php`, die „PHP AUSGEFUEHRT“
+  ausgeben würden), und Ordnerlisten sind eingeschaltet. So zeigt sich, ob die .htaccess
+  wirklich schützt. Das Formular hier immer mit
+  `GUARD_SRC=Server bash $S/form_attacks.sh http://127.0.0.1:8090/api/contact` angreifen:
+  Dann müssen Uploads (multipart), falsche Formate, zu große Anfragen und GET schon vom
+  Webserver abgewiesen werden („(Server)“ in der Ausgabe), ohne dass PHP startet. Das ist
+  der Schutz gegen Lücken im PHP selbst (Prüfkatalog K).
   Antwortet die Startseite mit 500, ist die .htaccess kaputt. Das wäre live ein Totalausfall
   und hat Vorrang vor allem anderen. Der Hinweis `Server: Apache/… (Ubuntu)` stammt vom
   Testserver. Bei A1 antwortet nginx, und per .htaccess lässt sich das ohnehin nicht ändern.
@@ -161,7 +168,8 @@ bash $S/live_check.sh drweiser.at officedrweiser/Spezielisierungen
 ```
 Geprüft werden: http→https-Weiterleitung, Zertifikat und Ablaufdatum, Header, eine
 Stichprobe geschützter Pfade, welche Version live läuft (alte WordPress-Seite oder dieses
-Repository) und die GitHub-Sichtbarkeit. Für HTTPS und GitHub gelten die Entscheidungen
+Repository), ob der Server seine PHP-Version verrät (und ob sie gepatcht ist) und die
+GitHub-Sichtbarkeit. Für HTTPS und GitHub gelten die Entscheidungen
 oben: Solange die neue Seite nicht online ist, kommen sie in den Bericht nur als Erinnerung
 für die Veröffentlichung. Ist die neue Seite live, sind sie echte To-dos.
 
@@ -215,6 +223,9 @@ Chat. Die Struktur steht in `references/bericht-vorlage.md`.
 - **Weiches Scrollen:** Die Seite hat `scroll-behavior: smooth`. Ein `scrollTo()` im Test
   läuft noch, während du schon scrollst, und setzt danach wieder auf 0 zurück. Das sieht
   dann aus wie „lässt sich nicht scrollen“. In Tests deshalb `behavior: 'instant'` verwenden.
+- **Frische Prüfumgebung:** Fehlt `node_modules`, installiert `testenv.sh start node` die
+  Pakete selbst (`npm ci`). Startet der Server trotzdem nicht, bricht das Skript mit dem
+  Protokoll ab. Antworten mit Code `000` heißen immer: Server läuft nicht, nicht „sicher“.
 - **Spam-Zähler:** Wiederholte Läufe ohne Neustart zählen weiter. PHP speichert den Zähler
   unter `sys_get_temp_dir()/drweiser-contact`, und `testenv.sh start php` leert ihn.
 - **Apache-Testordner:** Er liegt unter `/var/www/website-sicherheitscheck-test`, weil

@@ -5,17 +5,25 @@
 #           (zählt nur, ab welcher Anfrage gesperrt wird – vorher Testumgebung neu starten,
 #            damit der Zähler bei null beginnt)
 # Danach: python3 -I inspect_mails.py <arbeitsordner>/mails.txt  (prüft die echten Kopfzeilen)
+#
+# Apache-Testumgebung: GUARD_SRC=Server bash form_attacks.sh http://127.0.0.1:8090/api/contact
+#   verlangt zusätzlich, dass Uploads, falsche Formate, zu große Anfragen und GET schon vom
+#   Webserver (.htaccess) abgewiesen werden und PHP gar nicht erreichen (Schutz vor PHP2Shell).
 set -u
 URL="${1:-}"; MODE="${2:-angriffe}"
 case "$URL" in http://localhost*|http://127.*) ;; *) echo "Nur gegen lokale Testserver (localhost/127.x) – nie gegen das Live-Formular."; exit 2;; esac
 ORIGIN="$(printf '%s' "$URL" | sed -E 's#^(https?://[^/]+).*#\1#')"
-TMP=$(mktemp); trap 'rm -f "$TMP" "$TMP.json"' EXIT
+TMP=$(mktemp); trap 'rm -f "$TMP" "$TMP.json" "$TMP.txt"' EXIT
+G="${GUARD_SRC:+src=$GUARD_SRC}"
 pass=0; fail=0
-check() {  # Beschreibung, erwartete Codes (|-getrennt), curl-Argumente…
+check() {  # Beschreibung, erwartete Codes (|-getrennt), [src=Server], curl-Argumente…
   local desc="$1" expect="$2"; shift 2
+  local need=""; if [ "${1:-}" = "src=Server" ]; then need="Server"; shift; fi
   local code; code=$(curl -s -o "$TMP" -w '%{http_code}' --max-time 15 "$@")
-  if printf '%s' "$code" | grep -q -E "^($expect)$"; then pass=$((pass+1)); r="ok"; else fail=$((fail+1)); r="ABWEICHUNG"; fi
-  printf '  [%s] %-58s -> %s %s\n' "$r" "$desc" "$code" "$(head -c 70 "$TMP" | tr '\n' ' ')"
+  # Antwort im JSON-Format = vom Skript (PHP/Node), sonst vom Webserver selbst
+  local src="App"; [ "$(head -c 1 "$TMP")" = "{" ] || src="Server"
+  if printf '%s' "$code" | grep -q -E "^($expect)$" && { [ -z "$need" ] || [ "$src" = "$need" ]; }; then pass=$((pass+1)); r="ok"; else fail=$((fail+1)); r="ABWEICHUNG"; fi
+  printf '  [%s] %-58s -> %s (%s) %s\n' "$r" "$desc" "$code" "$src" "$(head -c 60 "$TMP" | tr '\n' ' ')"
 }
 J=(-H 'Content-Type: application/json' -H "Origin: $ORIGIN")
 
@@ -42,14 +50,22 @@ check "Datenschutz nicht bestätigt" "400" -X POST "$URL" "${J[@]}" -d '{"name":
 check "Leere Nachricht" "400" -X POST "$URL" "${J[@]}" -d '{"name":"Max","email":"max@example.com","message":"","privacy":true}'
 check "Nachricht über 5000 Zeichen" "400|413" -X POST "$URL" "${J[@]}" -d "{\"name\":\"Max\",\"email\":\"max@example.com\",\"message\":\"$(head -c 6000 /dev/zero | tr '\0' 'x')\",\"privacy\":true}"
 python3 -c "import json;print(json.dumps({'name':'A','email':'a@b.at','message':'x','topic':'T'*50000,'privacy':True}))" > "$TMP.json"
-check "Übergroße Anfrage (50 KB)" "413" -X POST "$URL" "${J[@]}" --data-binary @"$TMP.json"
+check "Übergroße Anfrage (50 KB)" "413" $G -X POST "$URL" "${J[@]}" --data-binary @"$TMP.json"
 check "Honeypot-Feld ausgefüllt (Bot) – still verworfen" "200" -X POST "$URL" "${J[@]}" -d '{"name":"Bot","email":"bot@example.com","message":"spam","privacy":true,"website":"http://spam.example"}'
 echo "== Anfragen von fremden Websites (CSRF)"
 check "JSON von fremder Website" "403" -X POST "$URL" -H 'Content-Type: application/json' -H 'Origin: https://evil.example' -d '{"name":"A","email":"a@b.at","message":"x","privacy":true}'
-check "Klassisches Formular von fremder Website" "403" -X POST "$URL" -H 'Origin: https://evil.example' --data 'name=A&email=a@b.at&message=x&privacy=1'
+check "Klassisches Formular von fremder Website" "403|415" $G -X POST "$URL" -H 'Origin: https://evil.example' --data 'name=A&email=a@b.at&message=x&privacy=1'
 check "Origin 'null' (Sandbox/Datei)" "403" -X POST "$URL" -H 'Content-Type: application/json' -H 'Origin: null' -d '{"name":"A","email":"a@b.at","message":"x","privacy":true}'
 echo "== Methode"
-check "GET auf den Formular-Endpunkt" "404|405" "$URL"
+check "GET auf den Formular-Endpunkt" "404|405" $G "$URL"
+echo "== Schutz vor PHP-Lücken (PHP2Shell): nur JSON-POST bis 20 KB erreicht das Skript"
+echo "hallo" > "$TMP.txt"
+check "Datei-Upload (multipart)" "415" $G -X POST "$URL" -H "Origin: $ORIGIN" -F 'name=A' -F 'email=a@b.at' -F 'message=x' -F 'privacy=1' -F "datei=@$TMP.txt"
+check "Text statt JSON (text/plain)" "415" $G -X POST "$URL" -H "Origin: $ORIGIN" -H 'Content-Type: text/plain' -d 'name=A'
+check "Direkter Aufruf contact.php mit Datei-Upload" "404|415" $G -X POST "$ORIGIN/api/contact.php" -H "Origin: $ORIGIN" -F "datei=@$TMP.txt"
+check "Pfad-Anhang (contact.php/x)" "404|405" $G "$ORIGIN/api/contact.php/x"
+check "Felder als Liste statt Text" "400" -X POST "$URL" "${J[@]}" -d '{"name":["A"],"email":{"x":1},"message":"x","privacy":true}'
+check "Sehr tief verschachteltes JSON" "400" -X POST "$URL" "${J[@]}" -d "$(python3 -c "print('{\"name\":' + '['*400 + ']'*400 + '}')")"
 echo
 echo "Ergebnis: $pass wie erwartet, $fail Abweichungen"
 echo "Spam-Bremse separat prüfen: Testumgebung neu starten, dann mit Zusatz \"spambremse\" aufrufen."

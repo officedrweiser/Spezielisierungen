@@ -103,6 +103,10 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
   if (isForeignOrigin(req)) {
     return res.status(403).json({ error: 'Anfrage nicht erlaubt.' });
   }
+  // Das Formular schickt ausschließlich JSON (wie in contact.php und .htaccess).
+  if (!req.is('application/json')) {
+    return res.status(415).json({ error: 'Anfrage nicht erlaubt.' });
+  }
   const body = req.body || {};
   const name = String(body.name || '').trim();
   const email = String(body.email || '').trim();

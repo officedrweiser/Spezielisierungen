@@ -5,9 +5,29 @@
 # Keine Ordnerinhalte auflisten, wenn eine Adresse auf einen Ordner zeigt.
 Options -Indexes
 
-# Das Formular sendet an /api/contact – hier auf das PHP-Skript umleiten.
 <IfModule mod_rewrite.c>
   RewriteEngine On
+
+  # Schutz vor Lücken im PHP-Programm des Servers (z. B. „PHP2Shell“,
+  # CVE-2026-109618 / CVE-2026-109619, Oktober 2026). Solche Lücken greifen
+  # schon beim Einlesen einer Anfrage, bevor das Formular-Skript läuft.
+  # Deshalb erreicht nur das PHP, was das Formular wirklich schickt: POST,
+  # Inhalt JSON, höchstens 20 000 Byte. Datei-Uploads (multipart) und alles
+  # andere weist der Webserver selbst ab. Ersetzt NICHT das PHP-Update beim
+  # Hoster, verkleinert aber die Angriffsfläche.
+  #
+  # Außer dem Formular-Skript führt diese Website kein PHP aus. Jede andere
+  # .php-Adresse (auch Reste der alten WordPress-Seite) gibt es daher nicht.
+  RewriteRule ^(?!api/contact\.php$).+\.php(/.*)?$ - [R=404,L,NC]
+  RewriteCond %{REQUEST_METHOD} !=POST
+  RewriteRule ^api/contact(\.php)?(/.*)?$ - [R=405,L]
+  RewriteCond %{HTTP:Content-Type} !^application/json [NC]
+  RewriteRule ^api/contact(\.php)?(/.*)?$ - [R=415,L]
+  RewriteCond %{HTTP:Content-Length} ^[0-9]{6,}$ [OR]
+  RewriteCond %{HTTP:Content-Length} ^(2000[1-9]|200[1-9][0-9]|20[1-9][0-9]{2}|2[1-9][0-9]{3}|[3-9][0-9]{4})$
+  RewriteRule ^api/contact(\.php)?(/.*)?$ - [R=413,L]
+
+  # Das Formular sendet an /api/contact – hier auf das PHP-Skript umleiten.
   RewriteRule ^api/contact/?$ /api/contact.php [L]
 </IfModule>
 
