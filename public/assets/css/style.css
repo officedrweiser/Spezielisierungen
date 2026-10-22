@@ -420,7 +420,7 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 }
 .hero .btn--ghost { color: var(--color-ink); border-color: rgba(27,27,31,0.55); background: rgba(255,255,255,0.6); }
 .hero .btn--ghost:hover { background: rgba(255,255,255,0.85); }
-.scroll-hint { color: var(--color-ink); text-shadow: var(--glow-sm); }
+.scroll-hint { color: var(--color-ink); text-shadow: none; }
 .scroll-hint__line { background: rgba(27,27,31,0.3); }
 .scroll-hint:hover .scroll-hint__label { color: var(--color-primary); }
 /* Kopfzeile ganz oben auf der Startseite (noch ohne eigenen Hintergrund) */
