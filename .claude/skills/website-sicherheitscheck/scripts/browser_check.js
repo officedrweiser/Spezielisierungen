@@ -8,10 +8,9 @@ const BASE = (process.argv[2] || 'http://localhost:3100').replace(/\/$/, '');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium';
 const CONSENT_KEY = process.env.CONSENT_KEY || 'mw_cookie_consent';
 const PAGES = ['/', '/ueber-uns.html', '/leistungen.html', '/kontakt.html', '/impressum.html', '/datenschutz.html'];
-// Entscheidung des Auftraggebers (10/2026): Die Google-Karte auf der Kontaktseite lädt
-// ohne Klick. Was die Karte in ihrem eigenen Frame lädt, wird deshalb nur als Hinweis
-// gemeldet. Alles andere von Dritten bleibt ein Befund.
-const ACCEPTED_MAP_PAGES = ['/kontakt.html'];
+// Ausnahmen für Seiten, deren Google-Karte ohne Zustimmung laden darf. Seit 10/2026 leer:
+// Die Karte hat einen eigenen Schalter im Cookie-Fenster und lädt erst nach Zustimmung.
+const ACCEPTED_MAP_PAGES = [];
 const MAP_HOSTS = /(^|\.)(google\.com|google\.at|gstatic\.com|googleapis\.com|ggpht\.com|googleusercontent\.com)$/;
 let findings = 0;
 const ok = (t) => console.log('  [ok] ' + t);
@@ -174,6 +173,23 @@ async function assertLocked(pg, label) {
     await pg.close();
   }
   await ctx.close();
+  // Google-Karte: nur mit Zustimmung „maps“; Knopf „Karte laden“ holt die Zustimmung nach
+  for (const [maps, label] of [[true, 'mit Zustimmung'], [false, 'ohne Zustimmung']]) {
+    const c = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    await c.addInitScript(([k, maps]) => { try { localStorage.setItem(k, JSON.stringify({ necessary: true, maps, ts: Date.now() })); } catch (e) {} }, [CONSENT_KEY, maps]);
+    const pg = await c.newPage(); const google = [];
+    pg.on('request', r => { if (/google/.test(new URL(r.url()).host)) google.push(r.url()); });
+    await pg.goto(BASE + '/kontakt.html', { waitUntil: 'networkidle' }).catch(() => {}); await pg.waitForTimeout(500);
+    const st = await pg.evaluate(() => ({ frame: !!document.querySelector('.map-wrap iframe'), ph: !!document.querySelector('.map-placeholder:not([hidden])') }));
+    if (maps) (st.frame && !st.ph) ? ok('Google-Karte mit Zustimmung geladen') : bad('Google-Karte trotz Zustimmung nicht geladen');
+    else (!st.frame && st.ph && !google.length) ? ok('Google-Karte ohne Zustimmung: nur Platzhalter, keine Verbindung zu Google') : bad(`Google-Karte ohne Zustimmung: Rahmen=${st.frame}, Google-Anfragen=${google.length}`);
+    if (!maps && await pg.$('[data-map-enable]')) {
+      await pg.click('[data-map-enable]'); await pg.waitForTimeout(800);
+      const after = await pg.evaluate((k) => ({ frame: !!document.querySelector('.map-wrap iframe'), maps: (JSON.parse(localStorage.getItem(k) || '{}') || {}).maps }), CONSENT_KEY);
+      (after.frame && after.maps === true) ? ok('„Karte laden“ lädt die Karte und speichert die Zustimmung') : bad('„Karte laden“ funktioniert nicht');
+    }
+    await c.close();
+  }
   const m = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await m.addInitScript((k) => { try { localStorage.setItem(k, JSON.stringify({ necessary: true, ts: Date.now() })); } catch (e) {} }, CONSENT_KEY);
   const mp = await m.newPage(); await mp.goto(BASE + '/', { waitUntil: 'networkidle' });

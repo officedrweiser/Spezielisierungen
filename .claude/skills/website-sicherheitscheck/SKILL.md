@@ -60,10 +60,13 @@ Betroffen sind `PAGES` in `browser_check.js` und die Pfadliste in `probe_server.
 Diese Punkte sind entschieden. Schlage sie nicht erneut als To-do vor, sondern prüfe nur, ob
 der vereinbarte Zustand noch stimmt:
 
-- **Google-Karte auf der Kontaktseite lädt ohne Klick.** Eine Zwei-Klick-Lösung ist nicht
-  gewünscht. Die Skripte melden die Karte deshalb nur als `[i]`. Andere Dienste von Dritten
-  vor der Zustimmung bleiben ein Befund. Offen bleibt nur: Die Karte muss in der
-  Datenschutzerklärung stehen.
+- **Google-Karte nur mit Zustimmung (seit 10/2026, ersetzt die frühere Regel „ohne Klick“).**
+  Das Cookie-Fenster hat einen eigenen Schalter „Google Maps“ (Kategorie `maps`). Ohne
+  Zustimmung zeigt die Kontaktseite einen Platzhalter mit „Karte laden“ und „In Google Maps
+  öffnen“. Die Karte steht als `data-map-src` im HTML, `main.js` (`updateMaps`) lädt sie
+  erst nach Zustimmung und entfernt sie bei Widerruf. Jede Verbindung zu Google vor der
+  Zustimmung ist wieder ein Befund. Die Datenschutzerklärung nennt die Einwilligung als
+  Rechtsgrundlage.
 - **Die Datenschutzerklärung ist vor der Cookie-Entscheidung lesbar.** Das ist der Lesemodus:
   `<main data-cookie-readable>` in `datenschutz.html`, die Klasse `html.cookie-reading`, und
   das Fenster sitzt unten. Text, Scrollen und externe Links sind frei. Kopfzeile, Fußzeile,

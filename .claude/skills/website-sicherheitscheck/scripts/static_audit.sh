@@ -74,15 +74,14 @@ for fn in sorted(glob.glob(os.path.join(sys.argv[1], "*.html"))):
         if not u:
             continue
         name = os.path.basename(fn)
-        # Entscheidung des Auftraggebers (10/2026): Google-Karte auf der Kontaktseite ohne Klick
-        if name == "kontakt.html" and tag == "iframe" and re.match(r"https://(www|maps)\.google\.com/maps", u.group(1)):
-            ds = os.path.join(sys.argv[1], "datenschutz.html")
-            listed = os.path.exists(ds) and "Google Maps" in open(ds, encoding="utf-8").read()
-            print(f"[i] {name}: Google-Karte lädt beim Aufruf – bewusst so entschieden")
-            print("[ok] Google Maps steht in der Datenschutzerklärung" if listed
-                  else "[!] Google Maps fehlt in der Datenschutzerklärung (datenschutz.html) – ergänzen")
-        else:
-            print(f"[!] {name}: <{tag}> lädt beim Aufruf {u.group(1)[:90]}")
+        print(f"[!] {name}: <{tag}> lädt beim Aufruf {u.group(1)[:90]}")
+    # Google-Karte: seit 10/2026 nur nach Zustimmung (data-map-src statt iframe src)
+    if re.search(r'data-map-src="https://(www|maps)\.google\.com/maps', html):
+        ds = os.path.join(sys.argv[1], "datenschutz.html")
+        listed = os.path.exists(ds) and "Google Maps" in open(ds, encoding="utf-8").read()
+        print(f"[ok] {os.path.basename(fn)}: Google-Karte lädt erst nach Zustimmung (Schalter im Cookie-Fenster)")
+        print("[ok] Google Maps steht in der Datenschutzerklärung" if listed
+              else "[!] Google Maps fehlt in der Datenschutzerklärung (datenschutz.html) – ergänzen")
 INNER
 
 section "5. Inline-Code (relevant für Content-Security-Policy)"

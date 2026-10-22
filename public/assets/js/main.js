@@ -307,7 +307,28 @@
     })(window, document, 'script', 'dataLayer', GTM_CONTAINER_ID);
   }
 
+  // Google-Karte (Kontaktseite): erst mit Zustimmung laden, bei Widerruf wieder
+  // entfernen. Bis dahin steht ein Platzhalter mit „Karte laden“ an ihrer Stelle.
+  function updateMaps(allowed) {
+    document.querySelectorAll('.map-wrap[data-map-src]').forEach(function (wrap) {
+      var frame = wrap.querySelector('iframe');
+      var placeholder = wrap.querySelector('.map-placeholder');
+      if (allowed && !frame) {
+        frame = document.createElement('iframe');
+        frame.src = wrap.getAttribute('data-map-src');
+        frame.title = wrap.getAttribute('data-map-title') || 'Karte';
+        frame.loading = 'lazy';
+        frame.referrerPolicy = 'no-referrer-when-downgrade';
+        wrap.appendChild(frame);
+      } else if (!allowed && frame) {
+        frame.remove();
+      }
+      if (placeholder) placeholder.hidden = allowed;
+    });
+  }
+
   function applyConsent(consent) {
+    updateMaps(!!(consent && consent.maps));
     if (!consent) return;
     if (consent.analytics) loadGoogleAnalytics();
     if (consent.tag_manager) loadGoogleTagManager();
@@ -352,14 +373,14 @@
     }
 
     if (acceptBtn) acceptBtn.addEventListener('click', function () {
-      var consent = { necessary: true, analytics: true, tag_manager: true, ts: Date.now() };
+      var consent = { necessary: true, analytics: true, tag_manager: true, maps: true, ts: Date.now() };
       setConsent(consent);
       setToggleStates(consent);
       hideBanner();
       collapsePanel();
     });
     if (rejectBtn) rejectBtn.addEventListener('click', function () {
-      var consent = { necessary: true, analytics: false, tag_manager: false, ts: Date.now() };
+      var consent = { necessary: true, analytics: false, tag_manager: false, maps: false, ts: Date.now() };
       setConsent(consent);
       setToggleStates(consent);
       hideBanner();
@@ -405,6 +426,18 @@
         collapsePanel();
         setToggleStates(getConsent());
         showBanner();
+      });
+    });
+
+    // Knopf „Karte laden“ auf der Kontaktseite: Zustimmung nur für Google Maps,
+    // alle übrigen Einstellungen bleiben unverändert.
+    document.querySelectorAll('[data-map-enable]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var consent = getConsent() || { necessary: true };
+        consent.maps = true;
+        consent.ts = Date.now();
+        setConsent(consent);
+        setToggleStates(consent);
       });
     });
 

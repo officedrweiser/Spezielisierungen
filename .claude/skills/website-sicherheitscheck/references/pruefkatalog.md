@@ -205,8 +205,8 @@ besonders peinlich.
 - **Vor** der Entscheidung im Cookie-Banner keine Anfrage an fremde Server:
   - Schriften sind selbst gehostet (`/assets/fonts`, `fonts.css`).
   - GA/GTM lädt erst nach Zustimmung.
-  - Ausnahme nach Entscheidung des Auftraggebers (10/2026): Die Google-Karte auf
-    `kontakt.html` lädt ohne Klick. Sie muss dafür in der Datenschutzerklärung stehen.
+  - Die Google-Karte auf `kontakt.html` lädt erst nach Zustimmung (Schalter „Google Maps“
+    im Cookie-Fenster oder Knopf „Karte laden“) und muss in der Datenschutzerklärung stehen.
   - Jede **neue** Einbettung (Video, weitere Karte, Widget) wird wieder als Befund gemeldet.
     Biete dafür eine Zwei-Klick-Lösung an und frag den Auftraggeber.
 - Cookie-Sperre: Solange keine Entscheidung gefallen ist, gibt es keinen Weg auf die Website,

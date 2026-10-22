@@ -761,6 +761,16 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 
 .map-wrap { border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card); border: 1px solid var(--color-line); }
 .map-wrap iframe { width: 100%; height: 340px; border: 0; display: block; }
+/* Platzhalter, solange Google Maps nicht freigegeben ist (gleiche Höhe wie die Karte) */
+.map-placeholder {
+  height: 340px; padding: 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  text-align: center; background: var(--color-paper-alt);
+}
+.map-placeholder[hidden] { display: none; }
+.map-placeholder strong { font-family: var(--font-serif); font-size: 1.15rem; color: var(--color-ink); }
+.map-placeholder p { margin: 0; max-width: 360px; font-size: 0.9rem; color: var(--color-ink-soft); }
+.map-placeholder a { font-size: 0.88rem; color: var(--color-ink); text-decoration: underline; }
 
 .office-note {
   margin-top: 24px;

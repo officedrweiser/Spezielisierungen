@@ -50,7 +50,7 @@
         <div class="reveal">
           <div class="contact-card">
             <h3>Kontaktformular</h3>
-            <p style="color:var(--color-ink-soft); margin-bottom:24px;">Füllen Sie das Formular aus, wir melden uns so rasch wie möglich bei Ihnen zurück.</p>
+            <p style="color:var(--color-ink-soft); margin-bottom:24px;">Füllen Sie das Formular aus, wir melden uns bei Ihnen möglichst rasch.</p>
             <form id="contact-form" novalidate>
               <div class="form-grid">
                 <div class="form-field">
@@ -143,13 +143,16 @@
             </div>
           </div>
 
-          <div class="map-wrap" style="margin-top:28px;">
-            <iframe
-              src="https://www.google.com/maps?q=Landstra%C3%9Fer%20Hauptstra%C3%9Fe%2060%2C%201030%20Wien&output=embed"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-              title="Standort Kanzlei Dr. Martin Weiser">
-            </iframe>
+          <!-- Google-Karte erst nach Zustimmung (Cookie-Fenster „Google Maps“ oder Knopf „Karte laden“), siehe main.js -->
+          <div class="map-wrap" style="margin-top:28px;"
+               data-map-src="https://www.google.com/maps?q=Landstra%C3%9Fer%20Hauptstra%C3%9Fe%2060%2C%201030%20Wien&amp;output=embed"
+               data-map-title="Standort Kanzlei Dr. Martin Weiser">
+            <div class="map-placeholder">
+              <strong>Karte von Google Maps</strong>
+              <p>Die Karte wird erst mit Ihrer Zustimmung geladen. Dabei wird Ihre IP-Adresse an Google übermittelt.</p>
+              <button type="button" class="btn btn--primary" data-map-enable>Karte laden</button>
+              <a href="https://www.google.com/maps/search/?api=1&amp;query=Landstra%C3%9Fer%20Hauptstra%C3%9Fe%2060%2C%201030%20Wien" target="_blank" rel="noopener">In Google Maps öffnen</a>
+            </div>
           </div>
 
           <div class="office-note">
@@ -270,6 +273,26 @@
         <div class="cookie-detail-row"><span>Name</span><span>Google Tag Manager</span></div>
         <div class="cookie-detail-row"><span>Anbieter</span><span>Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland</span></div>
         <div class="cookie-detail-row"><span>Zweck</span><span>Cookie von Google zur Steuerung erweiterter Skripte und Ereignisse.</span></div>
+        <div class="cookie-detail-row"><span>Datenschutzerklärung</span><span><a href="https://policies.google.com/privacy?hl=de" target="_blank" rel="noopener">https://policies.google.com/privacy?hl=de</a></span></div>
+      </div>
+    </div>
+
+    <div class="cookie-category">
+      <div class="cookie-category__row">
+        <button type="button" class="cookie-category__disclosure" data-cookie-disclosure aria-expanded="false">
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Google Maps</span>
+        </button>
+        <label class="cookie-switch">
+          <input type="checkbox" data-cookie-category="maps">
+          <span class="cookie-switch__track"></span>
+          <span class="sr-only">Google Maps aktivieren</span>
+        </label>
+      </div>
+      <div class="cookie-category__details">
+        <div class="cookie-detail-row"><span>Name</span><span>Google Maps</span></div>
+        <div class="cookie-detail-row"><span>Anbieter</span><span>Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland</span></div>
+        <div class="cookie-detail-row"><span>Zweck</span><span>Zeigt auf der Kontaktseite eine Karte mit dem Standort der Kanzlei. Beim Laden der Karte wird Ihre IP-Adresse an Google übermittelt, und Google kann Cookies setzen.</span></div>
         <div class="cookie-detail-row"><span>Datenschutzerklärung</span><span><a href="https://policies.google.com/privacy?hl=de" target="_blank" rel="noopener">https://policies.google.com/privacy?hl=de</a></span></div>
       </div>
     </div>
