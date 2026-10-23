@@ -29,6 +29,17 @@ Options -Indexes
 
   # Das Formular sendet an /api/contact – hier auf das PHP-Skript umleiten.
   RewriteRule ^api/contact/?$ /api/contact.php [L]
+
+  # Adressen der alten WordPress-Seite (bis 10/2026) dauerhaft auf die neuen
+  # Seiten umleiten, damit Suchergebnisse, Lesezeichen und Anzeigen weiter
+  # funktionieren. Angehängte Parameter (z. B. gclid von Google Ads) bleiben
+  # erhalten. /sprechstelle-3400/ entfällt bewusst (Auftraggeber, 10/2026).
+  # Keine HTTPS-Weiterleitung hier – die macht der A1-Kundenbereich.
+  RewriteRule ^kontakt/?$ /kontakt.html [R=301,L,NC]
+  RewriteRule ^schwerpunkte/?$ /leistungen.html [R=301,L,NC]
+  RewriteRule ^ueber_uns/?$ /ueber-uns.html [R=301,L,NC]
+  RewriteRule ^impressum/?$ /impressum.html [R=301,L,NC]
+  RewriteRule ^privacy-policy/?$ /datenschutz.html [R=301,L,NC]
 </IfModule>
 
 # Zugangsdaten, Vorlagen und versehentliche Kopien davon niemals ausliefern

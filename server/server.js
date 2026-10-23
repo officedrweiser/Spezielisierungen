@@ -65,6 +65,20 @@ app.use((req, res, next) => {
   next();
 });
 
+// Adressen der alten WordPress-Seite (dieselben wie in public/.htaccess).
+// Parameter wie gclid bleiben erhalten; /sprechstelle-3400/ entfällt bewusst.
+const OLD_PAGES = {
+  kontakt: '/kontakt.html',
+  schwerpunkte: '/leistungen.html',
+  ueber_uns: '/ueber-uns.html',
+  impressum: '/impressum.html',
+  'privacy-policy': '/datenschutz.html'
+};
+app.get(/^\/(kontakt|schwerpunkte|ueber_uns|impressum|privacy-policy)\/?$/i, (req, res) => {
+  const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+  res.redirect(301, OLD_PAGES[req.params[0].toLowerCase()] + query);
+});
+
 app.use(express.static(PUBLIC_DIR, { extensions: ['html'] }));
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
