@@ -105,12 +105,19 @@ Teil 3, meldet CSP-Blockaden in der Konsole.
 
 **Soll:** identische Werte in `server/server.js` und `public/.htaccess`.
 ```
-default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com;
-style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com;
-font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;
-frame-src https://www.google.com https://maps.google.com; frame-ancestors 'self'; base-uri 'self';
-form-action 'self'; object-src 'none'
+default-src 'self';
+script-src 'self' https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com;
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net
+  https://pagead2.googlesyndication.com https://www.google.com https://www.google.at;
+font-src 'self';
+connect-src 'self' https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net
+  https://pagead2.googlesyndication.com https://www.google.com https://www.google.at https://ad.doubleclick.net;
+frame-src https://www.google.com https://maps.google.com https://www.googletagmanager.com;
+frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'
 ```
+(In den Dateien steht das in einer Zeile.) Die Google-Adressen sind die aus Googles CSP-Leitfaden
+für Google Ads (developers.google.com/tag-platform/security/guides/csp) plus die Karte.
 Dazu kommen `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`,
 `Referrer-Policy: strict-origin-when-cross-origin` und
 `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`. HSTS
@@ -204,7 +211,8 @@ besonders peinlich.
 **Soll:**
 - **Vor** der Entscheidung im Cookie-Banner keine Anfrage an fremde Server:
   - Schriften sind selbst gehostet (`/assets/fonts`, `fonts.css`).
-  - GA/GTM lädt erst nach Zustimmung.
+  - Google Ads (`AW-17321921080`) lädt erst nach Zustimmung (Schalter „Google Ads“), ein
+    Widerruf setzt die Einwilligung sofort auf „denied“.
   - Die Google-Karte auf `kontakt.html` lädt erst nach Zustimmung (Schalter „Google Maps“
     im Cookie-Fenster oder Knopf „Karte laden“) und muss in der Datenschutzerklärung stehen.
   - Jede **neue** Einbettung (Video, weitere Karte, Widget) wird wieder als Befund gemeldet.
@@ -226,7 +234,7 @@ besonders peinlich.
 - „Alle ablehnen“ ist gleichwertig sichtbar und schaltet die Seite **genauso** frei. Eine
   Cookie-Wall, bei der man nur mit Zustimmung weiterkommt, wäre unzulässig.
 - Die Datenschutzerklärung nennt alle tatsächlich genutzten Dienste: Hosting (A1),
-  Kontaktformular/E-Mail, Google Analytics/Tag Manager, Google Maps, Cookie-Speicherung
+  Kontaktformular/E-Mail, Google Ads (Conversion-Messung), Google Maps, Cookie-Speicherung
   (localStorage). Neue Dienste werden dort ergänzt. Den Text formuliert der Auftraggeber.
   Du lieferst nur die technischen Fakten.
 

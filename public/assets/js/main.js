@@ -164,11 +164,9 @@
   var banner = document.getElementById('cookie-banner');
   var cookieBackdrop = document.getElementById('cookie-backdrop');
 
-  // Platzhalter-Kennungen: bitte durch die echten IDs aus Google Analytics /
-  // Google Tag Manager ersetzen, sobald diese vorliegen. Solange hier ein
-  // Platzhalter steht, wird bewusst kein Netzwerk-Request an Google ausgelöst.
-  var GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
-  var GTM_CONTAINER_ID = 'GTM-XXXXXXX';
+  // Google-Tag der Kanzlei (Google Ads, auch als GT-PJNW883S geführt). Wird
+  // erst geladen, wenn im Cookie-Fenster „Google Ads“ zugelassen ist.
+  var GOOGLE_ADS_ID = 'AW-17321921080';
 
   function getConsent() {
     try { return JSON.parse(localStorage.getItem(CONSENT_KEY)); }
@@ -294,41 +292,43 @@
     setPageLocked(false);
   }
 
-  var gaLoaded = false;
-  function loadGoogleAnalytics() {
-    if (gaLoaded) return;
-    if (GA_MEASUREMENT_ID.indexOf('XXXX') !== -1) {
-      console.log('[Cookie-Consent] Google Analytics zugelassen, aber noch keine echte Measurement-ID hinterlegt (main.js, GA_MEASUREMENT_ID).');
+  // Google Ads nur zur Messung des Anzeigenerfolgs: personalisierte Werbung
+  // (ad_personalization) und Analytics bleiben aus. Ein Widerruf gilt sofort;
+  // das bereits geladene Skript bekommt „denied“, Googles Cookies werden gelöscht.
+  var adsLoaded = false;
+  function gtag() { window.dataLayer.push(arguments); }
+  function updateGoogleAds(allowed) {
+    if (!allowed) {
+      if (adsLoaded) {
+        gtag('consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied' });
+        document.cookie.split(';').forEach(function (c) {
+          var name = c.split('=')[0].trim();
+          if (/^(_gcl_|_gac_)/.test(name)) {
+            document.cookie = name + '=; Max-Age=0; path=/';
+            document.cookie = name + '=; Max-Age=0; path=/; domain=.' + location.hostname.replace(/^www\./, '');
+          }
+        });
+      }
       return;
     }
-    gaLoaded = true;
+    window.dataLayer = window.dataLayer || [];
+    if (adsLoaded) {
+      gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted' });
+      return;
+    }
+    adsLoaded = true;
+    gtag('consent', 'default', {
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'denied',
+      analytics_storage: 'denied'
+    });
+    gtag('js', new Date());
+    gtag('config', GOOGLE_ADS_ID, { allow_ad_personalization_signals: false });
     var s = document.createElement('script');
     s.async = true;
-    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GOOGLE_ADS_ID;
     document.head.appendChild(s);
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { window.dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', GA_MEASUREMENT_ID);
-    window.gtag = gtag;
-  }
-
-  var gtmLoaded = false;
-  function loadGoogleTagManager() {
-    if (gtmLoaded) return;
-    if (GTM_CONTAINER_ID.indexOf('XXXX') !== -1) {
-      console.log('[Cookie-Consent] Google Tag Manager zugelassen, aber noch keine echte Container-ID hinterlegt (main.js, GTM_CONTAINER_ID).');
-      return;
-    }
-    gtmLoaded = true;
-    (function (w, d, s, l, i) {
-      w[l] = w[l] || [];
-      w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-      var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l !== 'dataLayer' ? '&l=' + l : '';
-      j.async = true;
-      j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-      f.parentNode.insertBefore(j, f);
-    })(window, document, 'script', 'dataLayer', GTM_CONTAINER_ID);
   }
 
   // Google-Karte (Kontaktseite): erst mit Zustimmung laden, bei Widerruf wieder
@@ -353,9 +353,7 @@
 
   function applyConsent(consent) {
     updateMaps(!!(consent && consent.maps));
-    if (!consent) return;
-    if (consent.analytics) loadGoogleAnalytics();
-    if (consent.tag_manager) loadGoogleTagManager();
+    updateGoogleAds(!!(consent && consent.ads));
   }
 
   function setToggleStates(consent) {
@@ -397,14 +395,14 @@
     }
 
     if (acceptBtn) acceptBtn.addEventListener('click', function () {
-      var consent = { necessary: true, analytics: true, tag_manager: true, maps: true, ts: Date.now() };
+      var consent = { necessary: true, ads: true, maps: true, ts: Date.now() };
       setConsent(consent);
       setToggleStates(consent);
       hideBanner();
       collapsePanel();
     });
     if (rejectBtn) rejectBtn.addEventListener('click', function () {
-      var consent = { necessary: true, analytics: false, tag_manager: false, maps: false, ts: Date.now() };
+      var consent = { necessary: true, ads: false, maps: false, ts: Date.now() };
       setConsent(consent);
       setToggleStates(consent);
       hideBanner();

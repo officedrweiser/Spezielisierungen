@@ -45,7 +45,7 @@ Techniker: Er arbeitet unter Windows/PowerShell und startet die Seite lokal mit
 | Teil | Datei(en) | Zweck |
 |---|---|---|
 | Seiten | `public/*.html`, `public/assets/` | statisches HTML/CSS/JS, Schriften selbst gehostet |
-| Cookie-Banner | `public/assets/js/main.js` | sperrt die Seite bis zur Entscheidung, lädt GA/GTM erst nach Zustimmung |
+| Cookie-Banner | `public/assets/js/main.js` | sperrt die Seite bis zur Entscheidung, lädt Google Ads (`AW-17321921080`) und die Google-Karte erst nach Zustimmung |
 | Node-Server | `server/server.js`, `server/mailer.js` | Variante 1: Express + nodemailer, Header-Middleware, Spam-Bremse |
 | PHP-Endpunkt | `public/api/contact.php` (+ `config.php` nur am Server) | Variante 2 (A1-Webhosting): eigener SMTP-Client |
 | Apache | `public/.htaccess` | Header, Sperren für Konfig-/Backup-Dateien, Umschreiben auf contact.php, PHP-Schutz (nur JSON-POST ≤ 20 KB erreicht PHP, alle anderen `.php` → 404) |
@@ -71,6 +71,11 @@ der vereinbarte Zustand noch stimmt:
   `<main data-cookie-readable>` in `datenschutz.html`, die Klasse `html.cookie-reading`, und
   das Fenster sitzt unten. Text, Scrollen und externe Links sind frei. Kopfzeile, Fußzeile,
   Menü und Links auf andere Seiten bleiben gesperrt. Alle anderen Seiten sind voll gesperrt.
+- **Google Ads statt Analytics/Tag Manager (10/2026).** Die Kanzlei hat kein Google Analytics
+  und keinen Tag Manager. Eingebaut ist nur ihr Google-Tag `AW-17321921080` (= `GT-PJNW883S`)
+  als Schalter „Google Ads“ (Kategorie `ads`). Er dient nur der Conversion-Messung, mit
+  `ad_personalization: denied`. Er lädt erst nach Zustimmung, und ein Widerruf wirkt sofort
+  (`browser_check.js` prüft beides). Die Datenschutzerklärung, Punkt 6, beschreibt das.
 - **GitHub wird nach der Veröffentlichung privat gestellt.** Solange es öffentlich ist,
   steht das im Bericht nur als Erinnerung.
 - **HTTPS wird im A1-Kundencenter erzwungen.** Nach der Umstellung prüfst du das mit

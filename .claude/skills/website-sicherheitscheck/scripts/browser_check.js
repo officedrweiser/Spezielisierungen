@@ -182,7 +182,7 @@ async function assertLocked(pg, label) {
 
   console.log('\n== 3. Nach Zustimmung: Fehler, Blockaden, Schriften, Funktionen');
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  await ctx.addInitScript((k) => { try { localStorage.setItem(k, JSON.stringify({ necessary: true, analytics: false, tag_manager: false, ts: Date.now() })); } catch (e) {} }, CONSENT_KEY);
+  await ctx.addInitScript((k) => { try { localStorage.setItem(k, JSON.stringify({ necessary: true, ads: false, maps: false, ts: Date.now() })); } catch (e) {} }, CONSENT_KEY);
   for (const path of PAGES) {
     const pg = await ctx.newPage(); const errs = [];
     pg.on('console', m => { if (m.type() === 'error' && !/404 \(Not Found\)/.test(m.text())) errs.push(m.text().slice(0, 140)); });
@@ -219,6 +219,26 @@ async function assertLocked(pg, label) {
       const after = await pg.evaluate((k) => ({ frame: !!document.querySelector('.map-wrap iframe'), maps: (JSON.parse(localStorage.getItem(k) || '{}') || {}).maps }), CONSENT_KEY);
       (after.frame && after.maps === true) ? ok('„Karte laden“ lädt die Karte und speichert die Zustimmung') : bad('„Karte laden“ funktioniert nicht');
     }
+    await c.close();
+  }
+  // Google Ads: lädt erst nach „Akzeptieren“, ohne CSP-Blockade; Widerruf schickt „denied“
+  {
+    const c = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const pg = await c.newPage(); const ads = []; const csp = [];
+    pg.on('request', r => { if (/googletagmanager|googleadservices|doubleclick|googlesyndication/.test(new URL(r.url()).host)) ads.push(r.url()); });
+    pg.on('console', m => { if (/Content Security Policy/i.test(m.text())) csp.push(m.text().slice(0, 160)); });
+    await pg.goto(BASE + '/', { waitUntil: 'networkidle' }).catch(() => {});
+    const before = ads.length;
+    await pg.click('#cookie-accept'); await pg.waitForTimeout(2500);
+    const tag = ads.find(u => /gtag\/js\?id=AW-/.test(u));
+    (!before && tag) ? ok('Google Ads: erst nach Zustimmung geladen (' + tag.split('?')[1] + ')') : bad(`Google Ads: vor Zustimmung ${before} Anfragen, nach Zustimmung Tag ${tag ? 'geladen' : 'NICHT geladen'}`);
+    csp.length ? bad('Google Ads: CSP blockiert ' + csp.join(' | ')) : ok('Google Ads: keine CSP-Blockade');
+    await pg.evaluate(() => document.querySelector('[data-open-cookie-settings]').click());
+    await pg.click('#cookie-details-toggle');
+    await pg.evaluate(() => { document.querySelector('[data-cookie-category="ads"]').checked = false; });
+    await pg.click('#cookie-save'); await pg.waitForTimeout(500);
+    const revoked = await pg.evaluate(() => (window.dataLayer || []).some(e => e && e[0] === 'consent' && e[1] === 'update' && e[2] && e[2].ad_storage === 'denied'));
+    revoked ? ok('Google Ads: Widerruf wirkt sofort (Einwilligung „denied“)') : bad('Google Ads: Widerruf ohne Wirkung');
     await c.close();
   }
   const m = await browser.newContext({ viewport: { width: 390, height: 844 } });
