@@ -237,7 +237,8 @@ h3 { font-size: 1.3rem; }
 /* Zweites Bild (Wartezimmer): Ausschnitt weiter rechts, damit am Handy Tür,
    Sofa und Gemälde zu sehen sind (Foto nur anders zugeschnitten) */
 .hero-slide:nth-child(2) { background-position: 82% center; }
-.hero-content { position: relative; z-index: 1; padding-top: 120px; padding-bottom: 80px; }
+/* Textblock etwas über der Mitte (Variante 2): mehr Abstand nach unten als nach oben */
+.hero-content { position: relative; z-index: 1; padding-top: 120px; padding-bottom: calc(80px + 24vh); }
 .hero-content .eyebrow { color: var(--color-primary); }
 .hero h1 { max-width: 760px; color: var(--color-white); text-shadow: 0 2px 24px rgba(15,15,17,0.45); }
 .hero .lede { max-width: 560px; color: rgba(255,255,255,0.92); font-size: 1.2rem; text-shadow: 0 1px 12px rgba(15,15,17,0.4); }
