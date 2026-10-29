@@ -19,7 +19,7 @@
     }
   }
 
-  /* ---------- Google-Bewertungen (rotierend) ---------- */
+  /* ---------- Bewertungen (rotierend) ---------- */
   var reviews = document.getElementById('reviews');
   if (reviews) {
     var rSlides = reviews.querySelectorAll('.review-slide');

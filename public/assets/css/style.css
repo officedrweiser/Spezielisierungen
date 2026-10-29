@@ -507,7 +507,7 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 .text-block { max-width: 780px; }
 
 
-/* ---------- Google-Bewertungen (rotierend) ---------- */
+/* ---------- Bewertungen (rotierend) ---------- */
 .reviews { max-width: 760px; margin: 0 auto; }
 .reviews-track { position: relative; display: grid; }
 .review-slide {
@@ -516,7 +516,8 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
   text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* Text beginnt direkt unter dem Anführungszeichen (nicht mittig) */
+  justify-content: flex-start;
   background: var(--color-white);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
@@ -528,19 +529,22 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
   transition: opacity 0.6s var(--ease), transform 0.6s var(--ease), visibility 0.6s var(--ease);
 }
 .review-slide.is-active { opacity: 1; visibility: visible; transform: translateY(0); }
-/* Google-Logo („G“) oben rechts im Bewertungsfeld */
-.review-slide { position: relative; }
-.review-slide::after {
-  content: '';
+.review-stars { position: relative; color: #E7B10A; letter-spacing: 4px; font-size: 1.05rem; margin-bottom: 20px; }
+/* Anführungszeichen links oben im Bewertungsfeld; sitzt in den Sternen
+   (role="img"), damit Screenreader es nicht vorlesen */
+.review-stars::before {
+  content: '\201C';
+  content: '\201C' / '';
   position: absolute;
-  top: 20px;
-  right: 22px;
-  width: 26px;
-  height: 26px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") center / contain no-repeat;
+  top: -30px;
+  left: -20px;
+  font-family: var(--font-serif);
+  font-size: 5.5rem;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--color-primary);
   pointer-events: none;
 }
-.review-stars { color: #E7B10A; letter-spacing: 4px; font-size: 1.05rem; margin-bottom: 20px; }
 .review-text {
   font-family: var(--font-serif);
   font-style: italic;
@@ -551,10 +555,6 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 }
 .review-meta { display: flex; flex-direction: column; gap: 3px; }
 .review-name { font-weight: 700; color: var(--color-ink); }
-.review-source {
-  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em;
-  color: var(--color-ink-faint); text-transform: uppercase;
-}
 .reviews-dots { display: flex; justify-content: center; gap: 10px; margin-top: 26px; }
 .reviews-dots button {
   width: 9px; height: 9px; border-radius: 50%;
@@ -566,6 +566,7 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 .reviews-dots button.is-active { background: var(--color-primary); transform: scale(1.25); }
 @media (max-width: 600px) {
   .review-slide { padding: 32px 24px 28px; }
+  .review-stars::before { top: -24px; left: -6px; font-size: 4.2rem; }
   .review-text { font-size: 1.02rem; }
 }
 
