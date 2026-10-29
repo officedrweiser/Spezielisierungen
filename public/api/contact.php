@@ -144,7 +144,19 @@ function load_config(): array
     ];
 
     $file = __DIR__ . '/config.php';
-    $custom = is_file($file) ? require $file : [];
+    $custom = [];
+    if (is_file($file)) {
+        // Alles, was config.php versehentlich ausgibt (Leerzeile vor "<?php",
+        // unsichtbares BOM vom Windows-Editor), wird verworfen. Sonst stünde
+        // die Antwort schon fest auf 200, und das Formular meldete Erfolg,
+        // obwohl der Versand scheitert.
+        ob_start();
+        try {
+            $custom = require $file;
+        } finally {
+            ob_end_clean();
+        }
+    }
     if (!is_array($custom)) {
         $custom = [];
     }
