@@ -22,8 +22,10 @@ check() {  # Beschreibung, erwartete Codes (|-getrennt), [src=Server], curl-Argu
   local code; code=$(curl -s -o "$TMP" -w '%{http_code}' --max-time 15 "$@")
   # Antwort im JSON-Format = vom Skript (PHP/Node), sonst vom Webserver selbst
   local src="App"; [ "$(head -c 1 "$TMP")" = "{" ] || src="Server"
-  if printf '%s' "$code" | grep -q -E "^($expect)$" && { [ -z "$need" ] || [ "$src" = "$need" ]; }; then pass=$((pass+1)); r="ok"; else fail=$((fail+1)); r="ABWEICHUNG"; fi
-  printf '  [%s] %-58s -> %s (%s) %s\n' "$r" "$desc" "$code" "$src" "$(head -c 60 "$TMP" | tr '\n' ' ')"
+  # Fehlerseiten dürfen keine Programmdetails verraten (Stacktrace, Dateipfade, PHP-Meldungen)
+  local leak=""; grep -q -E 'node_modules|at [A-Za-z_.<>]+ \(|/home/|/var/www/|[A-Z]:\\[A-Za-z]|Stack trace|Fatal error|Warning: |on line [0-9]+' "$TMP" && leak=" VERRÄT TECHNISCHE DETAILS"
+  if [ -z "$leak" ] && printf '%s' "$code" | grep -q -E "^($expect)$" && { [ -z "$need" ] || [ "$src" = "$need" ]; }; then pass=$((pass+1)); r="ok"; else fail=$((fail+1)); r="ABWEICHUNG"; fi
+  printf '  [%s] %-58s -> %s (%s)%s %s\n' "$r" "$desc" "$code" "$src" "$leak" "$(head -c 60 "$TMP" | tr '\n' ' ')"
 }
 J=(-H 'Content-Type: application/json' -H "Origin: $ORIGIN")
 
@@ -42,6 +44,10 @@ echo "== Kopfzeilen-Einschleusung (Antwort 200 ok – entscheidend ist inspect_m
 check "Zeilenumbruch + Bcc im Namen" "200" -X POST "$URL" "${J[@]}" -d '{"name":"Max\r\nBcc: opfer@example.com","email":"max@example.com","message":"Hallo","privacy":true}'
 check "Zeilenumbruch + Bcc im Rechtsgebiet" "200" -X POST "$URL" "${J[@]}" -d '{"name":"Max","email":"max@example.com","topic":"Erbrecht\r\nBcc: opfer@example.com","message":"Hallo","privacy":true}'
 check "Zeilenumbruch + Bcc in der E-Mail-Adresse" "400" -X POST "$URL" "${J[@]}" -d '{"name":"Max","email":"max@example.com\r\nBcc: x@example.com","message":"Hallo","privacy":true}'
+# Nodemailer-Lücken 2026 (addressparser): Kommentar oder Strichpunkt in der Adresse
+# wurde zu einem weiteren Empfänger von „Antwort an“. Solche Adressen gar nicht annehmen.
+check "Adress-Trick in der E-Mail-Adresse (Kommentar mit ;)" "400" -X POST "$URL" "${J[@]}" -d '{"name":"Max","email":"max(x;evil)@example.com","message":"Hallo","privacy":true}'
+check "Adress-Trick in der E-Mail-Adresse (Anführungszeichen mit ;)" "400" -X POST "$URL" "${J[@]}" -d '{"name":"Max","email":"\"evil;x\"@example.com","message":"Hallo","privacy":true}'
 check "Adress-Trick im Namen (\"<evil@…>,\")" "200" -X POST "$URL" "${J[@]}" -d '{"name":"Max \"<evil@example.com>, ","email":"max@example.com","message":"Hallo","privacy":true}'
 check "Schadcode + SMTP-Punkt-Trick in Nachricht" "200" -X POST "$URL" "${J[@]}" -d '{"name":"Max","email":"max@example.com","message":"<script>alert(1)</script><img src=x onerror=alert(1)>\n.\nRCPT TO:<x@evil.example>","privacy":true}'
 echo "== Pflichtfelder / Prüfungen"
@@ -64,6 +70,7 @@ check "Datei-Upload (multipart)" "415" $G -X POST "$URL" -H "Origin: $ORIGIN" -F
 check "Text statt JSON (text/plain)" "415" $G -X POST "$URL" -H "Origin: $ORIGIN" -H 'Content-Type: text/plain' -d 'name=A'
 check "Direkter Aufruf contact.php mit Datei-Upload" "404|415" $G -X POST "$ORIGIN/api/contact.php" -H "Origin: $ORIGIN" -F "datei=@$TMP.txt"
 check "Pfad-Anhang (contact.php/x)" "404|405" $G "$ORIGIN/api/contact.php/x"
+check "Kaputtes JSON (ohne Fehlerdetails beantworten)" "400" -X POST "$URL" "${J[@]}" -d '{"name":'
 check "Felder als Liste statt Text" "400" -X POST "$URL" "${J[@]}" -d '{"name":["A"],"email":{"x":1},"message":"x","privacy":true}'
 check "Sehr tief verschachteltes JSON" "400" -X POST "$URL" "${J[@]}" -d "$(python3 -c "print('{\"name\":' + '['*400 + ']'*400 + '}')")"
 echo

@@ -131,8 +131,9 @@ bash $S/testenv.sh stop "$W"
   Testserver. Bei A1 antwortet nginx, und per .htaccess lässt sich das ohnehin nicht ändern.
 - `probe_server.sh` meldet `<<< INHALT AUSGELIEFERT` oder `<<< ORDNERLISTE` als echte
   Lücke. Erwartet werden 403/404/405, nie Quelltext.
-- `form_attacks.sh` führt 16 Prüfungen durch. Erwartet wird bei allen `[ok]`. Jede
-  `ABWEICHUNG` wird untersucht.
+- `form_attacks.sh` führt 25 Prüfungen durch. Erwartet wird bei allen `[ok]`. Jede
+  `ABWEICHUNG` wird untersucht. Verrät eine Antwort Programmdetails (Stacktrace, Dateipfade,
+  PHP-Meldungen), gilt sie unabhängig vom Code als Abweichung.
 - `inspect_mails.py` zeigt, was wirklich verschickt würde. Prüfe die echten Kopfzeilen und
   Umschlag-Empfänger: Ein „Bcc:“ im Nachrichtentext ist harmlos, ein Bcc-Header ist es nicht.
 

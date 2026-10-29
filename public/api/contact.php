@@ -18,6 +18,11 @@ const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW = 900; // 15 Minuten
 const MAX_BODY_BYTES = 20000;     // wie beim Node-Server (20 KB)
 
+// Nur übliche Adressen (wie EMAIL_RE in server.js): keine Kommentare,
+// Anführungszeichen, Strichpunkte oder IP-Adressen, damit die Adresse als
+// „Antwort an“ nicht in mehrere Empfänger umgedeutet werden kann.
+const EMAIL_PATTERN = '/^[A-Za-z0-9!#$%&\'*+\/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&\'*+\/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$/D';
+
 // Nur die Rechtsgebiete aus dem Auswahlfeld des Formulars werden übernommen.
 const ALLOWED_TOPICS = [
     'Vertragsrecht',
@@ -89,7 +94,7 @@ function handle_request(): void
     if ($name === '' || mb_strlen_safe($name) > MAX_NAME_LENGTH) {
         respond(400, ['error' => 'Bitte geben Sie Ihren Namen an.']);
     }
-    if ($email === '' || mb_strlen_safe($email) > MAX_EMAIL_LENGTH || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if ($email === '' || mb_strlen_safe($email) > MAX_EMAIL_LENGTH || !filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match(EMAIL_PATTERN, $email)) {
         respond(400, ['error' => 'Bitte geben Sie eine gültige E-Mail-Adresse an.']);
     }
     if (mb_strlen_safe($phone) > MAX_PHONE_LENGTH) {

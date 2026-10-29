@@ -67,7 +67,10 @@ app.use((req, res, next) => {
 
 app.use(express.static(PUBLIC_DIR, { extensions: ['html'] }));
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Nur übliche Adressen (wie EMAIL_PATTERN in contact.php): keine Kommentare,
+// Anführungszeichen, Strichpunkte oder IP-Adressen, damit die Adresse als
+// „Antwort an“ nicht in mehrere Empfänger umgedeutet werden kann.
+const EMAIL_RE = /^[A-Za-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$/;
 
 // Nur die Rechtsgebiete aus dem Auswahlfeld des Formulars werden übernommen.
 const ALLOWED_TOPICS = [
@@ -149,6 +152,18 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
 });
 
 app.use((req, res) => sendNotFound(res));
+
+// Fehler beim Einlesen einer Anfrage (kaputtes JSON, zu groß …) ohne technische
+// Details beantworten. Express zeigt sonst Fehlermeldung, Dateipfade und
+// Programmzeilen an, solange NODE_ENV nicht auf „production“ steht.
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  const status = Number(err.status || err.statusCode) || 500;
+  if (status >= 500) console.error('[server] Fehler:', err.message);
+  if (status === 413) return res.status(413).json({ error: 'Ihre Nachricht ist zu lang.' });
+  if (status >= 400 && status < 500) return res.status(status).json({ error: 'Anfrage nicht erlaubt.' });
+  return res.status(500).json({ error: 'Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder rufen Sie uns an.' });
+});
 
 app.listen(PORT, () => {
   console.log(`Website läuft auf http://localhost:${PORT}`);

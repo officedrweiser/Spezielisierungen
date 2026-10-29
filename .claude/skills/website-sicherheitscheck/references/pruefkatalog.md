@@ -59,6 +59,10 @@ werden automatisiert ausgenutzt.
 - `npm audit fix --force` hebt Hauptversionen an und kann das Formular brechen. Arbeite ohne
   `--force` und teste das Formular danach.
 - Nach einem Update vergessen, das Formular in der Testumgebung erneut zu senden.
+- Beispiel 10/2026: nodemailer < 10.1.4 (addressparser) machte aus Kommentaren oder `;` in
+  einer Adresse weitere Empfänger, body-parser < 1.20.9 war per komprimierter Anfrage
+  lahmzulegen. `npm audit fix` hob beides ohne `--force` an. Die strenge Adressprüfung (F)
+  ist die zweite Sicherung, falls so etwas wiederkommt.
 
 ## C. Server-Konfiguration (Node, PHP, Apache)
 
@@ -156,7 +160,7 @@ Die Risiken:
 - Absenden über fremde Websites (CSRF)
 - unnötig große Anfragen
 
-**Prüfen:** `form_attacks.sh` (16 Fälle), `spambremse`-Modus und `inspect_mails.py`. Läuft
+**Prüfen:** `form_attacks.sh` (25 Fälle), `spambremse`-Modus und `inspect_mails.py`. Läuft
 für Node **und** PHP, jeweils lokal mit Test-Mailserver.
 
 **Soll (beide Varianten gleich):**
@@ -168,6 +172,8 @@ für Node **und** PHP, jeweils lokal mit Test-Mailserver.
 | Adress-Tricks im Namen (`<`, `>`, `,`, `;`, `@`) | aus dem Anzeigenamen entfernt |
 | `<script>` und SMTP-Punkt-Trick im Text | in der E-Mail maskiert (`&lt;script&gt;`), Punktzeilen verdoppelt |
 | ungültige E-Mail / fehlender Datenschutz-Haken / leere Nachricht | 400 |
+| Adress-Tricks in der E-Mail-Adresse (Kommentar `( )`, Anführungszeichen, `;`, `,`, `<>`, IP-Adresse) | 400; Node `EMAIL_RE` und PHP `EMAIL_PATTERN` sind gleich streng |
+| kaputtes JSON | 400 mit allgemeiner Meldung, nie Stacktrace oder Dateipfad |
 | Nachricht > 5000 Zeichen | 400 |
 | Anfrage > 20 KB | 413 |
 | Honeypot-Feld `website` ausgefüllt | 200, aber **keine** E-Mail |
@@ -190,6 +196,10 @@ mit `max: 20`; `mailer.js`: `escapeHtml`) und in PHP (`contact.php`: `ALLOWED_TO
   nach dem Hochladen mit dem Hoster klären.
 - Fehlermeldungen geben interne Details preis (SMTP-Fehlertext, Pfade). Nach außen gehen
   nur allgemeine Meldungen, Details nur ins Server-Log.
+- Express zeigt bei kaputtem oder zu großem JSON eine eigene Fehlerseite mit Stacktrace und
+  Dateipfaden (unter Windows samt Benutzername), solange `NODE_ENV` nicht `production` ist,
+  also lokal mit `npm start` immer. Der Fehler-Handler am Ende von `server.js` verhindert
+  das. `form_attacks.sh` meldet solche Antworten als „VERRÄT TECHNISCHE DETAILS“.
 
 ## G. Datenschutz-Technik (Dritte, Cookie-Banner, Texte)
 
