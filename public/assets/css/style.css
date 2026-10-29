@@ -390,6 +390,10 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 .page-hero .container { position: relative; }
 .page-hero .eyebrow { color: var(--color-primary); }
 .page-hero h1 { color: var(--color-white); max-width: 720px; }
+/* Langes Einzelwort („Datenschutzerklärung“): gleiche Größe wie die anderen
+   Seitentitel; nur auf schmalen Handys so weit kleiner, dass es ohne
+   Trennstrich in eine Zeile passt (Wortbreite ≈ 10,3 × Schriftgröße) */
+.page-hero h1.title--long-word { font-size: min(clamp(2.1rem, 4.4vw, 3.6rem), calc((100vw - 48px) / 10.45)); }
 .page-hero p { max-width: 560px; color: rgba(255,255,255,0.8); font-size: 1.1rem; }
 
 /* ---------- Lesbarkeit von Text auf Fotos (Variante A) ----------
@@ -516,8 +520,7 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
   text-align: center;
   display: flex;
   flex-direction: column;
-  /* Text beginnt direkt unter dem Anführungszeichen (nicht mittig) */
-  justify-content: flex-start;
+  justify-content: center;
   background: var(--color-white);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
@@ -529,22 +532,7 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
   transition: opacity 0.6s var(--ease), transform 0.6s var(--ease), visibility 0.6s var(--ease);
 }
 .review-slide.is-active { opacity: 1; visibility: visible; transform: translateY(0); }
-.review-stars { position: relative; color: #E7B10A; letter-spacing: 4px; font-size: 1.05rem; margin-bottom: 20px; }
-/* Anführungszeichen links oben im Bewertungsfeld; sitzt in den Sternen
-   (role="img"), damit Screenreader es nicht vorlesen */
-.review-stars::before {
-  content: '\201C';
-  content: '\201C' / '';
-  position: absolute;
-  top: -30px;
-  left: -20px;
-  font-family: var(--font-serif);
-  font-size: 5.5rem;
-  line-height: 1;
-  letter-spacing: 0;
-  color: var(--color-primary);
-  pointer-events: none;
-}
+.review-stars { color: #E7B10A; letter-spacing: 4px; font-size: 1.05rem; margin-bottom: 20px; }
 .review-text {
   font-family: var(--font-serif);
   font-style: italic;
@@ -566,7 +554,6 @@ html.nav-open .back-to-top { opacity: 0; visibility: hidden; }
 .reviews-dots button.is-active { background: var(--color-primary); transform: scale(1.25); }
 @media (max-width: 600px) {
   .review-slide { padding: 32px 24px 28px; }
-  .review-stars::before { top: -24px; left: -6px; font-size: 4.2rem; }
   .review-text { font-size: 1.02rem; }
 }
 
