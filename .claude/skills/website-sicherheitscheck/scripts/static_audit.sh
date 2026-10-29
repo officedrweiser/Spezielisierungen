@@ -61,7 +61,7 @@ section "4. Externe Inhalte in Seiten, Skripten, Styles"
 hosts=$(grep -r -h -o -E "https?://[a-zA-Z0-9.-]+" "$PUB" --include=*.html --include=*.js --include=*.css 2>/dev/null | sed -E 's#https?://##' | sort | uniq -c | sort -rn)
 echo "$hosts" | sed 's/^/    /'
 echo "    Hinweis: Hosts in <link>/<script>/<iframe>/url() werden beim Seitenaufruf geladen;"
-echo "    reine Links (<a href>) nicht. Für Google Fonts/Maps/Analytics vor Zustimmung -> Datenschutz-Befund."
+echo "    reine Links (<a href>) nicht. Für Google Fonts/Maps/Ads vor Zustimmung -> Datenschutz-Befund."
 python3 - "$PUB" <<'INNER'
 import re, sys, glob, os
 for fn in sorted(glob.glob(os.path.join(sys.argv[1], "*.html"))):

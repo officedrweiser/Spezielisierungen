@@ -105,12 +105,18 @@ Teil 3, meldet CSP-Blockaden in der Konsole.
 
 **Soll:** identische Werte in `server/server.js` und `public/.htaccess`.
 ```
-default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com;
-style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com;
-font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;
-frame-src https://www.google.com https://maps.google.com; frame-ancestors 'self'; base-uri 'self';
-form-action 'self'; object-src 'none'
+default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline';
+img-src 'self' data: https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net
+  https://pagead2.googlesyndication.com https://www.google.com https://www.google.at; font-src 'self';
+connect-src 'self' https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net
+  https://pagead2.googlesyndication.com https://www.google.com https://www.google.at https://ad.doubleclick.net;
+frame-src https://www.google.com https://maps.google.com https://www.googletagmanager.com; frame-ancestors 'self';
+base-uri 'self'; form-action 'self'; object-src 'none'
 ```
+Die Google-Ads-Adressen bei `img-src`/`connect-src` folgen Googles CSP-Anleitung für Google Ads
+(developers.google.com/tag-platform/security/guides/csp). Skripte kommen nur von
+`www.googletagmanager.com` (gtag.js); `www.google.com` bei `script-src` bleibt draußen, weil es
+dort JSONP-Adressen gibt, mit denen sich eine CSP umgehen lässt.
 Dazu kommen `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`,
 `Referrer-Policy: strict-origin-when-cross-origin` und
 `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`. HSTS
@@ -204,7 +210,12 @@ besonders peinlich.
 **Soll:**
 - **Vor** der Entscheidung im Cookie-Banner keine Anfrage an fremde Server:
   - Schriften sind selbst gehostet (`/assets/fonts`, `fonts.css`).
-  - GA/GTM lädt erst nach Zustimmung.
+  - Der Google-Tag von Google Ads lädt erst nach Zustimmung (Schalter „Google Ads“).
+    `ad_user_data` und `ad_personalization` bleiben `denied`: keine Formulardaten an Google
+    (sonst schickt der Tag die E-Mail-Adresse aus dem Formular gehasht an
+    `google.com/ccm/form-data`), kein Remarketing. Prüfen lässt sich das nur mit
+    abgefangenen Anfragen und einer https-Adresse, weil der Tag Formulardaten auf
+    `http://localhost` gar nicht erst ausliest.
   - Die Google-Karte auf `kontakt.html` lädt erst nach Zustimmung (Schalter „Google Maps“
     im Cookie-Fenster oder Knopf „Karte laden“) und muss in der Datenschutzerklärung stehen.
   - Jede **neue** Einbettung (Video, weitere Karte, Widget) wird wieder als Befund gemeldet.
@@ -226,7 +237,7 @@ besonders peinlich.
 - „Alle ablehnen“ ist gleichwertig sichtbar und schaltet die Seite **genauso** frei. Eine
   Cookie-Wall, bei der man nur mit Zustimmung weiterkommt, wäre unzulässig.
 - Die Datenschutzerklärung nennt alle tatsächlich genutzten Dienste: Hosting (A1),
-  Kontaktformular/E-Mail, Google Analytics/Tag Manager, Google Maps, Cookie-Speicherung
+  Kontaktformular/E-Mail, Google Ads, Google Maps, Cookie-Speicherung
   (localStorage). Neue Dienste werden dort ergänzt. Den Text formuliert der Auftraggeber.
   Du lieferst nur die technischen Fakten.
 

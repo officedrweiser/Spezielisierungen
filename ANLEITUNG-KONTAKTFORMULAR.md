@@ -114,15 +114,14 @@ Dokumente kopieren, die geteilt werden.
 
 ## Schritt 2: Projektdateien auf den Computer laden
 
-1. Repository im Browser öffnen:
-   `https://github.com/officedrweiser/Spezielisierungen`
-2. Grüner Button **`Code`** → **`Download ZIP`**.
-3. ZIP-Datei entpacken (Rechtsklick → „Alle extrahieren…").
+1. Diesen Link im Browser öffnen, der Download startet sofort:
+   `https://github.com/officedrweiser/Spezielisierungen/archive/refs/heads/claude/drweiser-website-deployment-6z2lz2.zip`
+   *(Nicht über den grünen Button `Code` → `Download ZIP` gehen: Der liefert
+   einen älteren Stand ohne die Google-Ads-Einstellungen.)*
+2. ZIP-Datei entpacken (Rechtsklick → „Alle extrahieren…").
 
 > **Kontrolle nach dem Entpacken:** Es muss die Datei
-> `public/api/contact.php` geben. Fehlt sie, wurde ein älterer Stand
-> heruntergeladen – dann hilft dieser Direktlink:
-> `https://github.com/officedrweiser/Spezielisierungen/archive/refs/heads/claude/weiser-law-website-bobdy0.zip`
+> `public/api/contact.php` geben.
 
 Sie haben jetzt einen Ordner mit u. a. diesen Unterordnern:
 

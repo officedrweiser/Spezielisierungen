@@ -68,22 +68,19 @@ server/server.js            Express-Server: liefert /public aus + POST /api/cont
 server/mailer.js            E-Mail-Versand (Nodemailer)
 ```
 
-## Cookie-Banner: Google Analytics / Google Tag Manager aktivieren
+## Cookie-Banner: Google Ads und Google Maps
 
-Das Cookie-Fenster hat drei Kategorien: „Technisch notwendige" (immer aktiv), „Google Analytics" und „Google Tag Manager" (beide einzeln über einen Schalter aktivierbar). Die Lade-Logik für beide Google-Dienste ist bereits fertig eingebaut, wird aber erst aktiv, sobald echte IDs hinterlegt sind:
+Das Cookie-Fenster hat drei Kategorien: „Technisch notwendige" (immer aktiv), „Google Ads" und „Google Maps" (beide einzeln über einen Schalter aktivierbar). Google Analytics und Google Tag Manager werden nicht verwendet (10/2026 entschieden).
 
-1. `public/assets/js/main.js` öffnen, ganz am Anfang des Abschnitts „Cookie consent banner" die beiden Platzhalter ersetzen:
-   ```js
-   var GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';   // durch echte Google Analytics Measurement-ID ersetzen
-   var GTM_CONTAINER_ID = 'GTM-XXXXXXX';     // durch echte Google Tag Manager Container-ID ersetzen
-   ```
-2. Solange dort ein Platzhalter (`XXXX`) steht, wird bewusst **kein** echtes Tracking-Skript geladen, selbst wenn eine Besucherin/ein Besucher die Kategorie aktiviert (nur ein Hinweis in der Browser-Konsole). Nach Eintragen der echten IDs greift die Zustimmung sofort.
+- **Google Ads:** Der Google-Tag des Kanzlei-Kontos (`GOOGLE_ADS_ID = 'AW-17321921080'` in `public/assets/js/main.js`) lädt erst nach Zustimmung. Remarketing (`ad_personalization`) und die Übermittlung von Nutzerdaten (`ad_user_data`) bleiben abgelehnt. Grund: Im Google-Ads-Konto ist die automatische Erfassung vom Nutzer bereitgestellter Daten eingeschaltet, sonst ginge die E-Mail-Adresse aus dem Kontaktformular gehasht an Google. Bei Widerruf werden die `_gcl_`-Cookies gelöscht.
+- **Google Maps:** Die Karte auf der Kontaktseite lädt erst nach Zustimmung oder nach Klick auf „Karte laden“.
+
+Kommt ein Dienst dazu, gehören seine Adressen in **beide** CSP-Kopien (`server/server.js` und `public/.htaccess`) und der Dienst in die Datenschutzerklärung.
 
 ## Noch zu erledigen vor dem Live-Gang
 
 - **Porträtfoto Dr. Weiser**: Auf der Seite „Über uns" ist bewusst ein Platzhalter statt eines KI-generierten Fotos eingebaut. Bitte ein echtes Foto liefern und den Platzhalter-Block in `public/ueber-uns.html` (`.portrait-placeholder`) ersetzen.
 - **SMTP-Zugangsdaten** für den produktiven Mailversand hinterlegen (siehe [ANLEITUNG-KONTAKTFORMULAR.md](ANLEITUNG-KONTAKTFORMULAR.md)).
-- **Google Analytics / Tag Manager IDs** eintragen, falls Tracking gewünscht ist (siehe oben).
 - **Google-Maps-Einbettung** auf der Kontaktseite verwendet die einbettungsfähige Maps-URL ohne API-Key – bitte nach dem Deployment einmal live prüfen.
 - Alle übrigen Bilder (Büro-/Rechtsmotive) sind KI-generiert (GPT Image 2 / Seedance 2.0) und rein atmosphärisch – kein echtes Foto der Kanzleiräume oder von Dr. Weiser.
 

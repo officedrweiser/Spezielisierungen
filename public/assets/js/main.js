@@ -164,11 +164,8 @@
   var banner = document.getElementById('cookie-banner');
   var cookieBackdrop = document.getElementById('cookie-backdrop');
 
-  // Platzhalter-Kennungen: bitte durch die echten IDs aus Google Analytics /
-  // Google Tag Manager ersetzen, sobald diese vorliegen. Solange hier ein
-  // Platzhalter steht, wird bewusst kein Netzwerk-Request an Google ausgelöst.
-  var GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
-  var GTM_CONTAINER_ID = 'GTM-XXXXXXX';
+  // Google-Ads-Konto der Kanzlei (Google-Tag, wie auf der früheren Website).
+  var GOOGLE_ADS_ID = 'AW-17321921080';
 
   function getConsent() {
     try { return JSON.parse(localStorage.getItem(CONSENT_KEY)); }
@@ -294,41 +291,50 @@
     setPageLocked(false);
   }
 
-  var gaLoaded = false;
-  function loadGoogleAnalytics() {
-    if (gaLoaded) return;
-    if (GA_MEASUREMENT_ID.indexOf('XXXX') !== -1) {
-      console.log('[Cookie-Consent] Google Analytics zugelassen, aber noch keine echte Measurement-ID hinterlegt (main.js, GA_MEASUREMENT_ID).');
+  // Google Ads: misst, ob Besucher über eine Anzeige kommen. Der Google-Tag
+  // lädt erst nach Zustimmung. Remarketing bleibt aus (ad_personalization),
+  // Analyse-Speicher ebenso (analytics_storage). ad_user_data bleibt bewusst
+  // abgelehnt: Sonst schickt der Tag (Einstellung im Google-Ads-Konto) die
+  // E-Mail-Adresse aus dem Kontaktformular gehasht an Google.
+  var adsLoaded = false;
+  function loadGoogleAds() {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    var granted = { ad_storage: 'granted', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' };
+    if (adsLoaded) {
+      window.gtag('consent', 'update', granted);
       return;
     }
-    gaLoaded = true;
+    adsLoaded = true;
+    window.gtag('consent', 'default', granted);
+    window.gtag('js', new Date());
+    window.gtag('config', GOOGLE_ADS_ID);
     var s = document.createElement('script');
     s.async = true;
-    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GOOGLE_ADS_ID;
     document.head.appendChild(s);
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { window.dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', GA_MEASUREMENT_ID);
-    window.gtag = gtag;
   }
 
-  var gtmLoaded = false;
-  function loadGoogleTagManager() {
-    if (gtmLoaded) return;
-    if (GTM_CONTAINER_ID.indexOf('XXXX') !== -1) {
-      console.log('[Cookie-Consent] Google Tag Manager zugelassen, aber noch keine echte Container-ID hinterlegt (main.js, GTM_CONTAINER_ID).');
-      return;
+  // Widerruf: Ein bereits geladener Google-Tag bekommt sofort „abgelehnt“,
+  // seine Cookies (_gcl_…) werden gelöscht.
+  function revokeGoogleAds() {
+    if (adsLoaded) {
+      window.gtag('consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
     }
-    gtmLoaded = true;
-    (function (w, d, s, l, i) {
-      w[l] = w[l] || [];
-      w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-      var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l !== 'dataLayer' ? '&l=' + l : '';
-      j.async = true;
-      j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-      f.parentNode.insertBefore(j, f);
-    })(window, document, 'script', 'dataLayer', GTM_CONTAINER_ID);
+    removeCookies(/^_gcl_/);
+  }
+
+  // Löscht Cookies für diese Adresse und ihre übergeordnete Domain (Google setzt
+  // sie z. B. für ".drweiser.at").
+  function removeCookies(pattern) {
+    var parts = location.hostname.split('.');
+    var domains = [''];
+    for (var i = 0; i < parts.length - 1; i++) domains.push('; domain=.' + parts.slice(i).join('.'));
+    document.cookie.split(';').forEach(function (c) {
+      var name = c.split('=')[0].trim();
+      if (!pattern.test(name)) return;
+      domains.forEach(function (d) { document.cookie = name + '=; Max-Age=0; path=/' + d; });
+    });
   }
 
   // Google-Karte (Kontaktseite): erst mit Zustimmung laden, bei Widerruf wieder
@@ -354,8 +360,7 @@
   function applyConsent(consent) {
     updateMaps(!!(consent && consent.maps));
     if (!consent) return;
-    if (consent.analytics) loadGoogleAnalytics();
-    if (consent.tag_manager) loadGoogleTagManager();
+    if (consent.ads) loadGoogleAds(); else revokeGoogleAds();
   }
 
   function setToggleStates(consent) {
@@ -397,14 +402,14 @@
     }
 
     if (acceptBtn) acceptBtn.addEventListener('click', function () {
-      var consent = { necessary: true, analytics: true, tag_manager: true, maps: true, ts: Date.now() };
+      var consent = { necessary: true, ads: true, maps: true, ts: Date.now() };
       setConsent(consent);
       setToggleStates(consent);
       hideBanner();
       collapsePanel();
     });
     if (rejectBtn) rejectBtn.addEventListener('click', function () {
-      var consent = { necessary: true, analytics: false, tag_manager: false, maps: false, ts: Date.now() };
+      var consent = { necessary: true, ads: false, maps: false, ts: Date.now() };
       setConsent(consent);
       setToggleStates(consent);
       hideBanner();

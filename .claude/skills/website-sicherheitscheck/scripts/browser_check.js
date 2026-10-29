@@ -182,7 +182,7 @@ async function assertLocked(pg, label) {
 
   console.log('\n== 3. Nach Zustimmung: Fehler, Blockaden, Schriften, Funktionen');
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  await ctx.addInitScript((k) => { try { localStorage.setItem(k, JSON.stringify({ necessary: true, analytics: false, tag_manager: false, ts: Date.now() })); } catch (e) {} }, CONSENT_KEY);
+  await ctx.addInitScript((k) => { try { localStorage.setItem(k, JSON.stringify({ necessary: true, ads: false, maps: false, ts: Date.now() })); } catch (e) {} }, CONSENT_KEY);
   for (const path of PAGES) {
     const pg = await ctx.newPage(); const errs = [];
     pg.on('console', m => { if (m.type() === 'error' && !/404 \(Not Found\)/.test(m.text())) errs.push(m.text().slice(0, 140)); });

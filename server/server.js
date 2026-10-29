@@ -13,16 +13,18 @@ app.disable('x-powered-by');
 app.use(express.json({ limit: '20kb' }));
 
 // Sicherheits-Header für alle Antworten (dieselben Werte wie in public/.htaccess).
-// Google Tag Manager/Analytics (erst nach Cookie-Zustimmung) und die Google-Karte
+// Der Google-Tag von Google Ads (erst nach Cookie-Zustimmung) und die Google-Karte
 // auf der Kontaktseite sind ausdrücklich erlaubt, alles andere nur vom eigenen Server.
+// Skripte nur von googletagmanager.com (gtag.js); Messaufrufe an die Google-Ads-Adressen laut Google.
+const GOOGLE_ADS_HOSTS = 'https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.at';
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
-  "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com",
+  "script-src 'self' https://www.googletagmanager.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com",
+  `img-src 'self' data: ${GOOGLE_ADS_HOSTS}`,
   "font-src 'self'",
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
-  "frame-src https://www.google.com https://maps.google.com",
+  `connect-src 'self' ${GOOGLE_ADS_HOSTS} https://ad.doubleclick.net`,
+  "frame-src https://www.google.com https://maps.google.com https://www.googletagmanager.com",
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",

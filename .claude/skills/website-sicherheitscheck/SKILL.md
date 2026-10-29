@@ -45,7 +45,7 @@ Techniker: Er arbeitet unter Windows/PowerShell und startet die Seite lokal mit
 | Teil | Datei(en) | Zweck |
 |---|---|---|
 | Seiten | `public/*.html`, `public/assets/` | statisches HTML/CSS/JS, Schriften selbst gehostet |
-| Cookie-Banner | `public/assets/js/main.js` | sperrt die Seite bis zur Entscheidung, lädt GA/GTM erst nach Zustimmung |
+| Cookie-Banner | `public/assets/js/main.js` | sperrt die Seite bis zur Entscheidung, lädt Google Ads und die Karte erst nach Zustimmung |
 | Node-Server | `server/server.js`, `server/mailer.js` | Variante 1: Express + nodemailer, Header-Middleware, Spam-Bremse |
 | PHP-Endpunkt | `public/api/contact.php` (+ `config.php` nur am Server) | Variante 2 (A1-Webhosting): eigener SMTP-Client |
 | Apache | `public/.htaccess` | Header, Sperren für Konfig-/Backup-Dateien, Umschreiben auf contact.php, PHP-Schutz (nur JSON-POST ≤ 20 KB erreicht PHP, alle anderen `.php` → 404) |
@@ -67,6 +67,13 @@ der vereinbarte Zustand noch stimmt:
   erst nach Zustimmung und entfernt sie bei Widerruf. Jede Verbindung zu Google vor der
   Zustimmung ist wieder ein Befund. Die Datenschutzerklärung nennt die Einwilligung als
   Rechtsgrundlage.
+- **Google Ads statt Google Analytics/Tag Manager (seit 10/2026).** Analytics und Tag
+  Manager gibt es nicht, sie stehen weder im Cookie-Fenster noch in der
+  Datenschutzerklärung. Der Google-Tag des Ads-Kontos (`AW-17321921080`) lädt erst nach
+  Zustimmung zum Schalter „Google Ads“ (Kategorie `ads`). `ad_user_data` und
+  `ad_personalization` bleiben `denied` (Variante A des Auftraggebers): keine Formulardaten
+  an Google, kein Remarketing. Google Ads zählt dadurch keine abgeschickten Formulare, das ist
+  so gewollt. Formulardaten an Google (z. B. `google.com/ccm/form-data`) sind ein Befund.
 - **Die Datenschutzerklärung ist vor der Cookie-Entscheidung lesbar.** Das ist der Lesemodus:
   `<main data-cookie-readable>` in `datenschutz.html`, die Klasse `html.cookie-reading`, und
   das Fenster sitzt unten. Text, Scrollen und externe Links sind frei. Kopfzeile, Fußzeile,

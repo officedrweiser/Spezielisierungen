@@ -47,11 +47,12 @@ Options -Indexes
 ErrorDocument 404 /404.html
 
 # Sicherheits-Header (dieselben Werte wie im Node-Server).
-# Google Tag Manager/Analytics (erst nach Cookie-Zustimmung) und die
+# Der Google-Tag von Google Ads (erst nach Cookie-Zustimmung) und die
 # Google-Karte auf der Kontaktseite sind ausdrücklich erlaubt, alles andere
-# nur vom eigenen Server.
+# nur vom eigenen Server. Skripte nur von googletagmanager.com (gtag.js);
+# Messaufrufe (Bilder/Verbindungen) an die Google-Ads-Adressen laut Google.
 <IfModule mod_headers.c>
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src https://www.google.com https://maps.google.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.at; font-src 'self'; connect-src 'self' https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.at https://ad.doubleclick.net; frame-src https://www.google.com https://maps.google.com https://www.googletagmanager.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
